@@ -13,15 +13,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#e8eee9;--card:#fff;--ink:#14201b;--mute:#4f5f58;--line:#c6d1ca;--g:#21513d;--gs:#d3e8dc;--b:#b4443a;--bs:#f6e0dc;--r:20px}
+:root{--bg:#d3ddd6;--card:#f3f7f4;--ink:#0e1914;--mute:#42524a;--line:#b0beb5;--g:#163f2c;--gs:#c6dfd0;--b:#a02f26;--bs:#efd6d1;--r:20px}
 [data-theme=dark]{--bg:#121816;--card:#1b2420;--ink:#e6eeea;--mute:#7f8d87;--line:#27332e;--g:#6fb596;--gs:#1f3a30;--b:#e08a80;--bs:#3a2421}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);background:linear-gradient(180deg,var(--bg),color-mix(in srgb,var(--bg) 86%,var(--g)));background-attachment:fixed;min-height:100vh;color:var(--ink);font:500 15px/1.4 "Quicksand","Segoe UI",system-ui,sans-serif;padding-bottom:110px}
 main{max-width:520px;margin:0 auto;padding:20px 16px}
 h1{font-size:20px;font-weight:600;margin:6px 0 14px;text-align:center}
 h2{font-size:13px;font-weight:600;margin:0 0 8px;color:var(--mute)}
-.card{background:var(--card);border-radius:30px 34px 28px 32px/32px 28px 34px 30px;padding:20px 22px;margin-bottom:14px;box-shadow:0 12px 30px -18px rgba(33,81,61,.35)}
+.card{background:var(--card);border-radius:30px 34px 28px 32px/32px 28px 34px 30px;padding:20px 22px;margin-bottom:14px;box-shadow:0 10px 26px -14px rgba(20,50,35,.42),0 0 0 1px rgba(22,63,44,.08)}
 [data-theme=dark] .card{box-shadow:0 12px 30px -18px rgba(0,0,0,.7)}
+[data-theme=dark] .tg:not(.on){opacity:1;font-weight:500}
 .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .t{font-weight:600}.s{color:var(--mute);font-size:13.5px}
 button,select,textarea,input{font:inherit;color:inherit}
@@ -71,7 +72,7 @@ textarea{min-height:76px;resize:vertical}
 .tg i{width:16px;height:16px;border-radius:50%;border:1.3px solid currentColor;display:grid;place-items:center;font-style:normal;font-size:12px;line-height:1;transition:all .15s}
 .tg i::before{content:"+"}
 .tg.pos{color:var(--g)}.tg.neg{color:var(--b)}.tg.neu{color:var(--ink)}
-.tg:not(.on){opacity:.85}
+.tg:not(.on){opacity:1;font-weight:500}
 .tg.on{opacity:1;font-weight:600}
 .tg.on i{background:currentColor;transform:scale(1.1)}
 .tg.on i::before{content:"\2713";color:var(--card);font-size:10px}
@@ -260,7 +261,7 @@ const isDark=()=>document.documentElement.dataset.theme==="dark";
 // each day gets its own hue; mood decides how vivid it is. The animal, the number and the slider all use it.
 const HUES=[8,28,46,95,150,172,198,222,262,292,330];
 function fcol(date,m){const t=m/100,h=HUES[hashStr(date+"c")%HUES.length];
- return isDark()?`hsl(${h},${8+82*t}%,${36+28*t}%)`:`hsl(${h},${10+82*t}%,${63-16*t}%)`}
+ return isDark()?`hsl(${h},${8+82*t}%,${36+28*t}%)`:`hsl(${h},${10+82*t}%,${(58-22*t-((h>=28&&h<=100)?8*t:0)).toFixed(1)}%)`}
 // fine-line animals. head = ellipse [cx,cy,rx,ry]; p = extra shapes (e: ellipse, l: polyline); eyes/mouth placed per animal
 const ANIMALS=[
  {n:"cat",h:[25,30,15,12],p:[{l:[[11,24],[12,9],[22,17]]},{l:[[39,24],[38,9],[28,17]]},{l:[[10,31],[3,29]]},{l:[[10,34],[3,35]]},{l:[[40,31],[47,29]]},{l:[[40,34],[47,35]]},{l:[[23.5,31],[26.5,31],[25,32.8]],c:1}],eyes:[19.5,30.5,27],mouth:[25,35.5,6]},
@@ -298,12 +299,12 @@ function faceFor(date,m,size=40){
  const [mx,my,hw]=A.mouth;let mouth="";
  for(let i=0;i<=8;i++){const u=i/8,x=mx-hw+2*hw*u,y=my-1.5*k+hw*.5*k*(1-Math.pow(2*u-1,2));mouth+=(i?"L":"M")+f(x+J(rough*.3))+" "+f(y+J(rough*.35))}
  out.push(mouth);
- const gl=glowFor(m)*Math.min(1,size/36)*(isDark()?1:.9),op=(.55+.45*t).toFixed(2);
+ const gl=glowFor(m)*Math.min(1,size/36)*(isDark()?1:.45),op=(.55+.45*t).toFixed(2);
  return `<svg class="fsvg" width="${size}" height="${size}" viewBox="-2 0 54 50" fill="none" stroke="${c}" stroke-width="${isDark()?1.5:1.8}" stroke-linecap="round" stroke-linejoin="round" style="overflow:visible;opacity:${op};filter:drop-shadow(0 0 ${gl.toFixed(1)}px ${c})">${out.map(d=>`<path d="${d}"/>`).join("")}</svg>`;
 }
 function blankFace(size=34){
  const ring=[];for(let i=0;i<26;i++){const a=i/26*Math.PI*2;ring.push(`${(25+20*Math.cos(a)).toFixed(1)} ${(25+20*Math.sin(a)).toFixed(1)}`)}
- return `<svg class="fsvg" width="${size}" height="${size}" viewBox="0 0 50 50" fill="none" stroke="${isDark()?"#2f3b36":"#b4c0b9"}" stroke-width="1.5"><path d="M${ring.join("L")}Z"/></svg>`;
+ return `<svg class="fsvg" width="${size}" height="${size}" viewBox="0 0 50 50" fill="none" stroke="${isDark()?"#2f3b36":"#8fa297"}" stroke-width="1.5"><path d="M${ring.join("L")}Z"/></svg>`;
 }
 let LW=300;const LH=84,LMID=42,LPAD=8;
 function linePts(seed,m){
@@ -312,18 +313,18 @@ function linePts(seed,m){
  return out;
 }
 const lineD=p=>"M"+p.map(q=>q[0].toFixed(1)+" "+q[1].toFixed(1)).join("L");
-const numGlow=(m,date)=>`0 0 ${(glowFor(m)*1.6).toFixed(1)}px ${fcol(date,m)}`;
+const numGlow=(m,date)=>`0 0 ${(glowFor(m)*(isDark()?1.6:.7)).toFixed(1)}px ${fcol(date,m)}`;
 function lineSVG(seed,m){
  LW=Math.max(240,Math.round(($("#app").clientWidth||380)-68));
- const pts=linePts(seed,m),k=pts[Math.round(m/100*60)],c=fcol(seed,m),glow=glowFor(m);
+ const pts=linePts(seed,m),k=pts[Math.round(m/100*60)],c=fcol(seed,m),glow=glowFor(m)*(isDark()?1:.5);
  return `<svg id="line" viewBox="0 0 ${LW} ${LH}" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${m}">
- <defs><linearGradient id="lg" gradientUnits="userSpaceOnUse" x1="0" x2="${LW}" y1="0" y2="0"><stop id="s1" offset="${m}%" stop-color="${c}"/><stop id="s2" offset="${m}%" stop-color="${isDark()?"#3a4642":"#bcc7c1"}"/></linearGradient></defs>
+ <defs><linearGradient id="lg" gradientUnits="userSpaceOnUse" x1="0" x2="${LW}" y1="0" y2="0"><stop id="s1" offset="${m}%" stop-color="${c}"/><stop id="s2" offset="${m}%" stop-color="${isDark()?"#3a4642":"#9fb0a6"}"/></linearGradient></defs>
  <path id="lp" d="${lineD(pts)}" fill="none" stroke="url(#lg)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 ${glow}px ${c})"/>
  <circle id="lk" cx="${k[0]}" cy="${k[1]}" r="5.5" fill="${c}" style="filter:drop-shadow(0 0 ${glow}px ${c})"/></svg>`;
 }
 function updLine(){
  const m=draft.mood;if(!$("#line"))return;
- const pts=linePts(sel,m),k=pts[Math.round(m/100*60)],c=fcol(sel,m),glow=glowFor(m);
+ const pts=linePts(sel,m),k=pts[Math.round(m/100*60)],c=fcol(sel,m),glow=glowFor(m)*(isDark()?1:.5);
  $("#lp").setAttribute("d",lineD(pts));$("#lp").style.filter=`drop-shadow(0 0 ${glow}px ${c})`;
  $("#s1").setAttribute("offset",m+"%");$("#s2").setAttribute("offset",m+"%");$("#s1").setAttribute("stop-color",c);
  const kn=$("#lk");kn.setAttribute("cx",k[0]);kn.setAttribute("cy",k[1]);kn.setAttribute("fill",c);kn.style.filter=`drop-shadow(0 0 ${glow}px ${c})`;
@@ -339,7 +340,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.8 \u00b7 8 Oct 2026";
+const VERSION="0.9 \u00b7 8 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -601,14 +602,15 @@ function corr(){
  const el=entryList();
  if(el.length<10)return '<p class="s" style="margin:8px 0 0">Needs about 10 logged days before this can say anything fair. You have '+el.length+'.</p>';
  const next=corrMode==="next",rows=corrRows(next);
- const up=rows.filter(r=>r.adj>=3).sort((a,b)=>b.adj-a.adj).slice(0,5),down=rows.filter(r=>r.adj<=-3).sort((a,b)=>a.adj-b.adj).slice(0,5);
+ const solid=r=>r.n>=5||Math.abs(r.adj)>=8; // a few days only count if the effect is large
+ const up=rows.filter(r=>r.adj>=3&&solid(r)).sort((a,b)=>b.adj-a.adj).slice(0,5),down=rows.filter(r=>r.adj<=-3&&solid(r)).sort((a,b)=>a.adj-b.adj).slice(0,5);
  const mx=Math.max(1,...up.concat(down).map(r=>Math.abs(r.adj)));
  const conf=n=>n>=10?"solid":n>=5?"likely":"early sign";
  const row=(r,neg)=>'<div class="hl"><div class="hn">'+esc(r.t)+' <span class="cf">'+conf(r.n)+'</span></div><div class="hv '+(neg?"neg":"")+'">'+(r.adj>0?"+":"")+Math.round(r.adj)+'<small>'+r.a+'% vs '+r.o+'% \u00b7 '+r.n+' days</small></div><div class="hb"><i class="'+(neg?"neg":"")+'" style="width:'+Math.round(Math.abs(r.adj)/mx*100)+'%"></i></div></div>';
  let html='<p class="s" style="margin:8px 0 0">'+(next?"How you tend to feel the day after.":"How your mood runs on days with each thing, compared with days without it.")+'</p>';
  html+='<div class="sech">'+(next?"LIFTS THE NEXT DAY":"TENDS TO LIFT YOU")+'</div>'+(up.length?up.map(r=>row(r,false)).join(""):'<p class="s" style="margin:0">Nothing stands out yet.</p>');
  html+='<div class="sech">'+(next?"WEIGHS ON THE NEXT DAY":"TENDS TO PULL YOU DOWN")+'</div>'+(down.length?down.map(r=>row(r,true)).join(""):'<p class="s" style="margin:0">Nothing stands out yet.</p>');
- return html+'<p class="s" style="margin:10px 0 0">Points = difference in average mood, nudged toward zero when there are only a few days. "Early sign" means fewer than 5 days, so treat it lightly. These are patterns, not proof of cause, and they use all your logged days.</p>';
+ return html+'<p class="s" style="margin:10px 0 0">Points = difference in average mood, nudged toward zero when there are only a few days. "Early sign" means fewer than 5 days, so only big effects are shown and they should be treated lightly. These are patterns, not proof of cause, and they use all your logged days.</p>';
 }
 /* ---------- views ---------- */
 const rateRow=([k,label,hint])=>`<div class="rrow"><div><div class="rl">${label}</div><div class="rh">${hint}</div></div><div class="dots" data-k="${k}">${[1,2,3,4,5].map(n=>`<button class="rd ${(draft[k]||0)>=n?"on":""}" data-n="${n}" aria-label="${label} ${n}"></button>`).join("")}</div></div>`;
@@ -851,7 +853,7 @@ function timelineHTML(kind){
  // bars: positives rise above the baseline, stressors drop below it
  const days=pts.map(([d,e])=>({d,m:e.mood,p:goodNames(e).length,n:stressNames(e).length})),mx=Math.max(3,...days.map(z=>Math.max(z.p,z.n))),bw=Math.max(3,Math.min(14,(W-P-8)/(span+1)*.6));
  x.beginPath();x.moveTo(P,mid);x.lineTo(W,mid);x.stroke();
- x.globalAlpha=.5;days.forEach(z=>{if(z.p){x.fillStyle=g;const h=z.p/mx*half;x.fillRect(px(z.d)-bw/2,mid-h,bw,h)}if(z.n){x.fillStyle=neg;const h=z.n/mx*half;x.fillRect(px(z.d)-bw/2,mid,bw,h)}});x.globalAlpha=1;
+ x.globalAlpha=isDark()?.5:.85;days.forEach(z=>{if(z.p){x.fillStyle=g;const h=z.p/mx*half;x.fillRect(px(z.d)-bw/2,mid-h,bw,h)}if(z.n){x.fillStyle=neg;const h=z.n/mx*half;x.fillRect(px(z.d)-bw/2,mid,bw,h)}});x.globalAlpha=1;
  if(pts.length){x.strokeStyle=g;x.lineWidth=2;x.lineJoin="round";x.beginPath();pts.forEach(([d,e],i)=>i?x.lineTo(px(d),py(e.mood)):x.moveTo(px(d),py(e.mood)));x.stroke();
   x.fillStyle=g;pts.forEach(([d,e])=>{x.beginPath();x.arc(px(d),py(e.mood),range==="YTD"?2:4,0,7);x.fill()})}
  let msg=pts.length?`${pts.length} days · average ${avg(pts.map(p=>p[1].mood))}%${filterTag?` on days with "${filterTag}"`:""}`:"No data in this range";
