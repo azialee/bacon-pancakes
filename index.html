@@ -196,6 +196,8 @@ ul.plain{padding-left:18px;margin:6px 0}
 .pill{display:inline-block;padding:3px 11px;border-radius:14px;background:var(--gs);font-size:13px;margin:2px 3px 2px 0}
 .nosave{background:#fff3d6;color:#5a4300;border-radius:18px;padding:12px 14px;font-size:13px;margin-bottom:12px}
 [data-theme=dark] .nosave{background:#3a3016;color:#f1deb0}
+#upd{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:90;max-width:92vw;border:0;border-radius:20px;padding:10px 18px;background:var(--g);color:#fff;font-weight:600;font-size:14px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+[data-theme=dark] #upd{color:#10201a}
 /* nav */
 nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));background:var(--card);border-radius:30px;display:flex;gap:4px;padding:6px;box-shadow:0 4px 20px #0000001a}
 nav button{width:46px;height:46px;border-radius:50%;border:0;background:none;color:var(--mute);display:grid;place-items:center;cursor:pointer}
@@ -348,7 +350,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.13 \u00b7 8 Oct 2026";
+const VERSION="0.14 \u00b7 8 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -730,6 +732,7 @@ settings(){
  ${r("AI breakdown (testing)","Stored only in this browser. Use a key with a low spend limit.",`<input type="password" id="aikey" placeholder="API key" value="${esc(S.set.aikey||"")}" style="width:130px">`)}
  ${r("Daily reminder","Works while the app is open",`<input type="time" id="remind" value="${S.set.remind||""}">`)}
  ${r("Export","Save all entries as a spreadsheet",`<button class="ib" id="csv">${svg("down")}</button>`)}
+ ${r("Updates","Version "+verNum(VERSION),`<button class="link" id="updbtn">check</button>`)}
  ${r("Report","Printable summary for therapy",`<button class="ib" id="print">${svg("print")}</button>`)}
  ${r("Delete everything","Erases all data on this device",`<button class="ib" id="wipe">${svg("trash")}</button>`)}
  <p class="s" style="text-align:center">Your data stays on this device.</p>
@@ -838,7 +841,7 @@ function bind(){
   $("#perset").onclick=()=>{S.set.period=S.set.period===false;save();render()};
   $("#aikey").onchange=e=>{S.set.aikey=e.target.value.trim();save()};
   $("#remind").onchange=e=>{S.set.remind=e.target.value;save();if(e.target.value&&"Notification"in window)Notification.requestPermission()};
-  $("#csv").onclick=exportCSV;$("#print").onclick=printReport;
+  $("#updbtn").onclick=()=>{checkUpdate(true)};$("#csv").onclick=exportCSV;$("#print").onclick=printReport;
   $("#wipe").onclick=e=>{const b=e.currentTarget;if(b.dataset.arm){try{if(LS)LS.clear()}catch(e){}location.reload();return}b.dataset.arm=1;b.style.background="var(--b)";toast("Tap again to delete everything");setTimeout(()=>{delete b.dataset.arm;b.style.background=""},4000)};
  }
 }
@@ -996,11 +999,37 @@ function printReport(){
  w.print();
 }
 
+/* ---------- updates ---------- */
+const verNum=s=>String(s).split(" ")[0];
+function showUpdate(v){
+ if($("#upd"))return;const b=document.createElement("button");b.id="upd";b.textContent="A new version ("+v+") is ready. Tap to update.";
+ b.onclick=applyUpdate;document.body.appendChild(b);
+}
+function applyUpdate(){
+ const jobs=[];
+ try{if(window.caches)jobs.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}))}catch(e){}
+ try{if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}))}catch(e){}
+ Promise.all(jobs).then(function(){location.reload()},function(){location.reload()});
+}
+// resolves true when a newer version exists on the server
+function checkUpdate(manual){
+ if(location.protocol.indexOf("http")!==0){if(manual)toast("Updates only work from the web address");return Promise.resolve(false)}
+ if(manual)toast("Checking\u2026");
+ return fetch("index.html?"+Date.now(),{cache:"no-store"}).then(function(r){return r.text()}).then(function(t){
+  const m=t.match(/const VERSION="([^"]*)"/),live=m?verNum(m[1]):null;
+  if(live&&live!==verNum(VERSION)){showUpdate(live);return true}
+  if(manual)toast("You're up to date \u00b7 "+verNum(VERSION));return false;
+ }).catch(function(){if(manual)toast("Couldn't check. Are you online?");return false});
+}
+let lastUpd=0;
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"&&Date.now()-lastUpd>60000){lastUpd=Date.now();checkUpdate(false)}});
+
 /* ---------- reminder + boot ---------- */
 setInterval(()=>{const r=S.set.remind,n=new Date(),hm=String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0");
  if(r&&hm===r&&sget("lastRemind")!==today()&&window.Notification&&Notification.permission==="granted"){sset("lastRemind",today());new Notification("How are you today?")}},30000);
 applyTheme();render();window.__easeOk=true;
-try{if("serviceWorker"in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js").catch(function(){})}catch(e){}
+try{if("serviceWorker"in navigator&&location.protocol.indexOf("http")===0)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(function(reg){try{reg.update()}catch(e){}}).catch(function(){})}catch(e){}
+lastUpd=Date.now();setTimeout(function(){checkUpdate(false)},1500);
 </script>
 </body>
 </html>
