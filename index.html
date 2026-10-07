@@ -188,6 +188,11 @@ ul.plain{padding-left:18px;margin:6px 0}
 
 .brand{text-align:center;font-size:24px;letter-spacing:.1em;color:var(--g);font-weight:600;margin:0 0 12px;line-height:1.1}
 .brand span{letter-spacing:0;display:inline-block;transform:rotate(90deg);margin-left:4px}
+.ctags{margin:8px 0 6px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.cchip{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:14px;padding:3px 9px 3px 12px;font-size:13px;font-weight:600;background:var(--bg);cursor:pointer}
+.cchip b{font-size:11px;opacity:.7}
+.cchip.pos{color:var(--g)}.cchip.neg{color:var(--b)}.cchip.neu{color:var(--ink)}
+.cpick{display:flex;flex-wrap:wrap;gap:2px 12px;max-height:170px;overflow-y:auto;padding:8px 2px;margin-bottom:6px;border-top:1px solid var(--line)}
 .pill{display:inline-block;padding:3px 11px;border-radius:14px;background:var(--gs);font-size:13px;margin:2px 3px 2px 0}
 .nosave{background:#fff3d6;color:#5a4300;border-radius:18px;padding:12px 14px;font-size:13px;margin-bottom:12px}
 [data-theme=dark] .nosave{background:#3a3016;color:#f1deb0}
@@ -343,7 +348,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.12 \u00b7 8 Oct 2026";
+const VERSION="0.13 \u00b7 8 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -365,7 +370,7 @@ function tagCache(){
  if(TC&&TC.v===DATAV)return TC;
  const all=[...GROUPS.flatMap(groupTags),...DERIVED],seen=new Set(all.map(t=>t[0]));
  Object.values(S.entries).forEach(e=>noteThemes(e.note).forEach(k=>{const nm=themeName(k);if(!seen.has(nm)){seen.add(nm);all.push([nm,/^good moments$/i.test(k)?G:B])}}));
- Object.values(chatMap()).forEach(ks=>ks.forEach(k=>{const nm=themeName(k);if(!seen.has(nm)){seen.add(nm);all.push([nm,/^good moments$/i.test(k)?G:B])}}));
+ Object.values(chatMap()).forEach(ks=>ks.forEach(k=>{const nm=k;if(!seen.has(nm)){seen.add(nm);all.push([nm,/^good moments$/i.test(k)?G:B])}}));
  const type={};all.forEach(t=>{type[t[0]]=t[1]});
  TC={v:DATAV,all:all,type:type};return TC;
 }
@@ -385,14 +390,18 @@ function namesOf(e){
 }
 // themes from saved chats count on the day of the chat, shown as "<theme> (chat)" (top 3 themes per chat)
 let CTC=null;
+function autoChatTags(c){
+ const out=[];Object.entries(c.themes||{}).sort((a,b)=>b[1].length-a[1].length).slice(0,3).forEach(x=>{const n=themeName(x[0]);if(out.indexOf(n)<0)out.push(n)});
+ return out;
+}
+const chatTagsOf=c=>Array.isArray(c.tags)?c.tags:autoChatTags(c);
 function chatMap(){
  if(CTC&&CTC.v===DATAV)return CTC.m;
  const m={};
  S.convos.forEach(c=>{const d=/^\d{4}-\d{2}-\d{2}$/.test(c.date||"")?c.date:null;if(!d)return;
-  Object.entries(c.themes||{}).sort((a,b)=>b[1].length-a[1].length).slice(0,3).forEach(x=>{(m[d]=m[d]||[]);if(m[d].indexOf(x[0])<0)m[d].push(x[0])})});
+  (m[d]=m[d]||[]);chatTagsOf(c).forEach(n=>{if(m[d].indexOf(n)<0)m[d].push(n)})});
  CTC={v:DATAV,m:m};return m;
-}
-const chatNames=d=>(chatMap()[d]||[]).map(themeName);
+}const chatNames=d=>chatMap()[d]||[];
 const dayNames=d=>{const e=S.entries[d],base=e?namesOf(e):[];chatNames(d).forEach(nm=>{if(base.indexOf(nm)<0)base.push(nm)});return base};
 const allDates=()=>{const s=new Set(Object.keys(S.entries));Object.keys(chatMap()).forEach(d=>s.add(d));return Array.from(s).sort()};// ---- tag order / removal (the user can reorder and hide what they don't use) ----
 function tagList(g){
@@ -412,7 +421,7 @@ function restoreTag(name){S.set.hidden=S.set.hidden.filter(n=>n!==name);save();r
 
 /* ---------- state ---------- */
 let view="today",sel=today(),calMonth=today().slice(0,7),range="WTD",filterTag="",draft=null,drafts={},addingIn=null,addType=G,showFilter=false,chatStep=null;
-let editTags=false,expG=new Set(),tlAll={neg:false,pos:false},memoSel=null,corrMode="same";
+let addChatTag=null,editTags=false,expG=new Set(),tlAll={neg:false,pos:false},memoSel=null,corrMode="same";
 const niceDate=d=>new Date(d+"T12:00").toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
 function toast(msg){let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";document.body.appendChild(t)}
  t.textContent=msg;t.classList.add("show");clearTimeout(window.__tt);window.__tt=setTimeout(()=>t.classList.remove("show"),2200)}
@@ -450,7 +459,19 @@ function localRead(text){
  const statements=pool.slice().sort(function(a,b){return score(b)-score(a)}).slice(0,4);
  return{feelings:Object.entries(feel).sort(function(a,b){return b[1]-a[1]}).slice(0,6),statements:statements};
 }
-function localHTML(c){
+function chatTagsHTML(c){
+ const names=chatTagsOf(c);
+ const chip=n=>`<button class="cchip ${typeOf(n)||N}" data-crm="${c.id}" data-n="${esc(n)}" aria-label="remove ${esc(n)}">${esc(n)} <b>\u2715</b></button>`;
+ let h=`<div class="ctags"><span class="s">counts as:</span> ${names.length?names.map(chip).join(""):'<span class="s">nothing yet</span>'} <button class="link sm" data-cadd="${c.id}">${addChatTag===c.id?"done":"+ add"}</button></div>`;
+ if(addChatTag===c.id){
+  const use=tagUse(),all=[],seen=new Set(names);
+  GROUPS.forEach(g=>tagList(g).forEach(t=>{if(!seen.has(t[0])&&!all.some(x=>x[0]===t[0]))all.push(t)}));
+  all.sort((a,b)=>(use[b[0]]||0)-(use[a[0]]||0));
+  h+=`<div class="cpick">${all.map(([n,ty])=>`<button class="tg ${ty}" data-cpick="${c.id}" data-n="${esc(n)}"><i></i>${esc(n)}</button>`).join("")}</div>`;
+ }
+ return h;
+}
+function setChatTags(id,fn){const c=S.convos.find(x=>x.id==id);if(!c)return;c.tags=fn(chatTagsOf(c).slice());save();render()}function localHTML(c){
  const l=c.local||{},th=c.themes||{};let h="";
  if(l.feelings&&l.feelings.length)h+='<h2 style="margin-top:12px">Feelings that came up</h2><div>'+l.feelings.map(function(f){return '<span class="pill">'+esc(f[0])+(f[1]>1?" ×"+f[1]:"")+'</span>'}).join("")+'</div>';
  if(l.statements&&l.statements.length)h+='<h2 style="margin-top:12px">In your words</h2>'+l.statements.map(function(s){return '<div class="q">'+esc(s)+'</div>'}).join("");
@@ -699,7 +720,7 @@ trends(){
   <div class="row" style="margin:10px 0"><span class="s">Date</span><input type="text" id="cdate" value="${today()}" style="width:140px;text-align:center"></div>
   <p class="s" id="chatmsg" style="color:var(--b);min-height:1.3em;margin:0 0 8px;font-weight:600"></p><button class="btn" id="addc">${S.set.aikey?"Break it down":"Summarise and save"}</button></div>`;
  return `<h1>Chats</h1>${intro}
- ${S.convos.slice().reverse().map(c=>`<div class="card"><div class="row"><span class="t">${c.date}${c.ai?' <span class="s">· AI breakdown</span>':""}</span><button class="link" data-delc="${c.id}">Delete</button></div>${c.ai?aiHTML(c.ai):localHTML(c)}</div>`).join("")}`;
+ ${S.convos.slice().reverse().map(c=>`<div class="card"><div class="row"><span class="t">${c.date}${c.ai?' <span class="s">· AI breakdown</span>':""}</span><button class="link" data-delc="${c.id}">Delete</button></div>${chatTagsHTML(c)}${c.ai?aiHTML(c.ai):localHTML(c)}</div>`).join("")}`;
 },
 settings(){
  const r=(t,s,c)=>`<div class="card row"><div><div class="t">${t}</div><div class="s">${s}</div></div>${c}</div>`;
@@ -808,6 +829,9 @@ function bind(){
     render()};
   }
   A.querySelectorAll("[data-delc]").forEach(b=>b.onclick=()=>{S.convos=S.convos.filter(c=>c.id!=b.dataset.delc);save();render()});
+  A.querySelectorAll("[data-crm]").forEach(b=>b.onclick=()=>setChatTags(b.dataset.crm,a=>a.filter(n=>n!==b.dataset.n)));
+  A.querySelectorAll("[data-cadd]").forEach(b=>b.onclick=()=>{const id=+b.dataset.cadd;addChatTag=addChatTag===id?null:id;render()});
+  A.querySelectorAll("[data-cpick]").forEach(b=>b.onclick=()=>setChatTags(b.dataset.cpick,a=>a.concat([b.dataset.n])));
  }
  if(view==="settings"){
   $("#theme").onchange=e=>{S.set.theme=e.target.value;save();applyTheme()};
