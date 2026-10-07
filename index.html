@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#eef1ee">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -25,6 +25,8 @@ h2{font-size:13px;font-weight:600;margin:0 0 8px;color:var(--mute)}
 .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .t{font-weight:600}.s{color:var(--mute);font-size:13.5px}
 button,select,textarea,input{font:inherit;color:inherit}
+input,textarea,select{font-size:16px} /* iPhone Safari zooms into anything smaller than 16px */
+html,body{touch-action:manipulation;-webkit-text-size-adjust:100%} /* no double-tap zoom */
 .ib{width:38px;height:44px;border-radius:10px;border:0;background:var(--g);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
 [data-theme=dark] .ib{color:#10201a}
 .ib svg{width:18px;height:18px}
@@ -40,7 +42,8 @@ textarea{min-height:76px;resize:vertical}
 /* mood line */
 .moodhead{display:flex;align-items:center;justify-content:space-between;padding:0 6px}
 .pct{font-size:44px;font-weight:400;letter-spacing:-.5px;font-variant-numeric:lining-nums;line-height:1;transition:color .2s}
-#line{width:100%;height:auto;display:block;touch-action:pan-y;cursor:ew-resize;margin-top:6px;outline:none;overflow:visible}
+.lwrap{padding:16px 0;margin:-6px 0 -2px;touch-action:none;cursor:ew-resize;-webkit-user-select:none;user-select:none}
+#line{width:100%;height:auto;display:block;outline:none;overflow:visible;touch-action:none;pointer-events:none}
 #line path{transition:filter .2s}
 .hint{text-align:center;color:var(--mute);font-size:13px;margin-top:2px}
 .sosbtn{display:flex;margin:0 auto 12px;padding:8px 18px;border:0;border-radius:20px;background:var(--card);color:var(--b);font-weight:600;font-size:13.5px;cursor:pointer;box-shadow:0 8px 18px -12px rgba(33,81,61,.5)}
@@ -84,7 +87,7 @@ textarea{min-height:76px;resize:vertical}
 .eb{display:flex;gap:4px}
 .eb button{width:30px;height:28px;border:0;border-radius:9px;background:var(--bg);color:var(--ink);cursor:pointer;font-size:12px}
 /* note */
-.note{background:none!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;padding:6px 2px!important;min-height:36px;resize:none;overflow:hidden;font-size:15px;line-height:1.6;transition:border-color .2s}
+.note{background:none!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;padding:6px 2px!important;min-height:36px;resize:none;overflow:hidden;font-size:16px;line-height:1.6;transition:border-color .2s}
 .note:focus{border-bottom-color:var(--g)!important}
 .note::placeholder{color:var(--mute);font-style:italic;opacity:.8}
 /* keep button */
@@ -113,12 +116,15 @@ textarea{min-height:76px;resize:vertical}
 .boardhint{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:0 40px;color:var(--mute);font-size:13px;pointer-events:none}
 .board{position:relative;height:380px;border-radius:16px;background:var(--bg);overflow:hidden;touch-action:none;margin-top:10px}
 .stk{position:absolute;cursor:grab;user-select:none;transform:rotate(var(--rot));border-radius:50%;padding:2px}
-.stk.sel{outline:1.5px dashed var(--g);outline-offset:2px}
+.stk .fsvg{animation:xmas var(--dur,3s) ease-in-out infinite;animation-delay:var(--dl,0s)}
+@keyframes xmas{0%,100%{filter:drop-shadow(0 0 1px var(--lc,#6dbb86))}50%{filter:drop-shadow(0 0 calc(2px + 12px*var(--li,.2)) var(--lc,#6dbb86))}}
 .bctl{display:flex;gap:6px;flex-wrap:wrap}
-.bb{border:0;border-radius:14px;background:var(--bg);color:var(--ink);padding:5px 11px;font-size:13px;font-weight:600;cursor:pointer;min-width:34px}
+.bb{border:0;border-radius:14px;background:var(--bg);color:var(--ink);padding:6px 10px;cursor:pointer;display:grid;place-items:center}
+.bb svg{width:18px;height:18px;display:block}
 .bb.warn2{background:var(--b);color:#fff}
 /* trends */
 .seg{display:flex;background:var(--bg);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg.top{background:var(--card);border-radius:16px;box-shadow:0 8px 18px -14px rgba(33,81,61,.45)}
 .seg button{flex:1;border:0;background:none;padding:8px;border-radius:10px;cursor:pointer;color:var(--mute)}
 .seg button.on{background:var(--card);color:var(--ink);font-weight:600}
 canvas{width:100%;height:200px;display:block}
@@ -171,8 +177,9 @@ ul.plain{padding-left:18px;margin:6px 0}
 .tln{display:flex;flex-direction:column;line-height:1.2;font-size:13px}
 .tlt{position:relative;height:12px;background:var(--bg);border-radius:6px}
 .tlb{position:absolute;top:0;height:100%;background:var(--b);border-radius:6px;opacity:.8}
+.tlb.pos{background:var(--g)}
 .tlax{display:flex;justify-content:space-between;font-size:11px;color:var(--mute);margin-left:146px}
-select.hidden{display:none}
+
 .brand{text-align:center;font-size:13px;letter-spacing:.16em;color:var(--g);font-weight:600;margin:2px 0 4px}
 .brand span{letter-spacing:0;display:inline-block;transform:rotate(90deg);margin-left:2px}
 .pill{display:inline-block;padding:3px 11px;border-radius:14px;background:var(--gs);font-size:13px;margin:2px 3px 2px 0}
@@ -327,7 +334,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.6 · 7 Oct 2026";
+const VERSION="0.7 \u00b7 8 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -385,7 +392,7 @@ function restoreTag(name){S.set.hidden=S.set.hidden.filter(n=>n!==name);save();r
 
 /* ---------- state ---------- */
 let view="today",sel=today(),calMonth=today().slice(0,7),range="WTD",filterTag="",draft=null,drafts={},addingIn=null,addType=G,showFilter=false,chatStep=null;
-let editTags=false,expG=new Set(),tlAll=false,memoSel=null;
+let editTags=false,expG=new Set(),tlAll={neg:false,pos:false},memoSel=null;
 const niceDate=d=>new Date(d+"T12:00").toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
 function toast(msg){let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";document.body.appendChild(t)}
  t.textContent=msg;t.classList.add("show");clearTimeout(window.__tt);window.__tt=setTimeout(()=>t.classList.remove("show"),2200)}
@@ -558,15 +565,23 @@ function recap(){
  html+=`<div class="sech">QUICK WINS</div>`+(W.length?`<ol class="qw">${W.slice(0,3).map(w=>`<li><b>${esc(w[0])}</b><span>${w[1]}</span></li>`).join("")}</ol>`:`<p class="s">Nothing urgent stands out. Keep doing the things in the list above.</p>`);
  return out.join("")+html;
 }
-function summary(days){
- const t=today(),cur=moodBetween(addDays(t,-days+1),t),prev=moodBetween(addDays(t,-2*days+1),addDays(t,-days));
- if(!cur.length)return '<p class="s" style="margin:0">Not enough data yet.</p>';
- const d=prev.length?avg(cur)-avg(prev):null,tags={};
- Object.entries(S.entries).filter(([k])=>k>addDays(t,-days)).forEach(([,e])=>namesOf(e).forEach(x=>tags[x]=(tags[x]||0)+1));
- const top=Object.entries(tags).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,v])=>`${esc(k)} (${v})`).join(", ");
- return `<p style="margin:0 0 4px">Average <b>${avg(cur)}%</b> over ${cur.length} days${d!=null?` (${d>=0?"+":""}${d} vs. before)`:""}. High ${Math.max(...cur)}%, low ${Math.min(...cur)}%.</p>${top?`<p class="s" style="margin:0">Most logged: ${top}</p>`:""}`;
-}
-function corr(){
+function summaryFor(from,to,word){
+ const len=daysBetween(from,to)+1,pFrom=addDays(from,-len),pTo=addDays(from,-1);
+ const ent=entryList().filter(([d])=>d>=from&&d<=to),cur=ent.map(([,e])=>e.mood),prev=moodBetween(pFrom,pTo);
+ if(!cur.length)return '<p class="s" style="margin:0">Nothing logged in this stretch yet.</p>';
+ const a=avg(cur),d=prev.length?a-avg(prev):null;
+ let s=(a>=75?"A bright ":a>=60?"A pretty steady ":a>=45?"A mixed ":"A heavy ")+word+": you're sitting around <b>"+a+"%</b> across "+cur.length+" logged day"+(cur.length>1?"s":"");
+ if(d!=null)s+=Math.abs(d)<5?", about the same as last "+word:(d>0?", up "+d+" points on last "+word:", down "+(-d)+" points from last "+word);
+ s+=".";
+ let hi=ent[0],lo=ent[0];ent.forEach(x=>{if(x[1].mood>hi[1].mood)hi=x;if(x[1].mood<lo[1].mood)lo=x});
+ if(cur.length>=3)s+=" Your best day was "+niceDate(hi[0])+" ("+hi[1].mood+"%) and the toughest was "+niceDate(lo[0])+" ("+lo[1].mood+"%).";
+ const gc={},sc={};ent.forEach(([,e])=>{goodNames(e).forEach(n=>gc[n]=(gc[n]||0)+1);stressNames(e).forEach(n=>sc[n]=(sc[n]||0)+1)});
+ const top=o=>Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,3).map(x=>esc(x[0].toLowerCase()));
+ const tg=top(gc),ts=top(sc);
+ if(tg.length)s+=" On the good side, "+list(tg)+" kept showing up.";
+ if(ts.length)s+=" Weighing on you most: "+list(ts)+".";
+ return '<p style="margin:0;line-height:1.55">'+s+'</p>';
+}function corr(){
  const el=entryList();if(el.length<14)return `<p class="s" style="margin:0">Needs about 14 logged days. You have ${el.length}.</p>`;
  const rows=[];
  allTags().forEach(([t])=>{const w=el.filter(([,e])=>namesOf(e).includes(t)).map(([,e])=>e.mood),o=el.filter(([,e])=>!namesOf(e).includes(t)).map(([,e])=>e.mood);
@@ -604,7 +619,7 @@ today(){
  return `<h1>${sel===today()?"how are you today?":"how were you on "+niceDate(sel)+"?"}</h1>${dateStrip()}
  <button class="sosbtn" id="sos">having a hard moment?</button>
  <div class="card"><div class="moodhead"><div class="pct" id="pct" style="color:${fc};text-shadow:${numGlow(m,sel)}">${m}</div><div id="face">${faceFor(sel,m,56)}</div></div>
-  ${lineSVG(sel,m)}<div class="hint">slide along the line</div></div>
+  <div class="lwrap" id="lwrap">${lineSVG(sel,m)}</div><div class="hint">slide along the line</div></div>
  <div class="card">${RATINGS.map(rateRow).join("")}${S.set.period!==false?`<div class="rrow"><div><div class="rl">Period</div><div class="rh">${cycleHint()}</div></div><button class="sw2 ${draft.period?"on":""}" id="per" role="switch" aria-checked="${draft.period}" aria-label="Period"></button></div>`:""}</div>
  ${tagsCard()}
  <div class="card"><textarea id="note" class="note" rows="1" placeholder="a thought worth keeping…">${esc(draft.note)}</textarea></div>
@@ -619,21 +634,24 @@ calendar(){
  const mm=entryList().filter(([d])=>d.startsWith(calMonth)).map(([,e])=>e.mood);
  return `<h1>Calendar</h1><div class="card"><div class="row"><button class="link" id="prev">‹</button><span class="t">${first.toLocaleString("default",{month:"long",year:"numeric"})}</span><button class="link" id="next">›</button></div><br><div class="cal">${cells}</div>
  <p class="s" style="margin:12px 0 0">${mm.length?`Average ${avg(mm)}% · ${mm.length} days logged`:"No entries this month"}${Object.keys(S.entries).some(d=>d.startsWith(calMonth)&&S.entries[d].period)?' · <span style="color:var(--b)">●</span> period':""}</p></div>
- <div class="card"><div class="row" style="flex-wrap:wrap"><h2 style="margin:0">Memo board</h2><div class="bctl"><button class="bb" id="bminus" aria-label="smaller">−</button><button class="bb" id="bplus" aria-label="bigger">+</button><button class="bb" id="boff">take off</button><button class="bb" id="bclear">clear</button></div></div>
- <div class="board" id="board"><div class="boardhint" id="bh">press and hold a face on the calendar, then drag it here.<br>tap a sticker to resize it</div></div></div>`;
+ <div class="card"><div class="row" style="flex-wrap:wrap"><h2 style="margin:0">Memo board</h2><button class="bb" id="bclear" aria-label="clear the board">${svg("trash")}</button></div>
+ <div class="board" id="board"><div class="boardhint" id="bh">press and hold a face on the calendar, then drag it here.<br>pinch with two fingers to resize</div></div></div>`;
 },
 trends(){
- return `<h1>Trends</h1><div class="card"><div class="seg">${["WTD","MTD","YTD"].map(r=>`<button data-r="${r}" class="${r===range?"on":""}">${r}</button>`).join("")}</div>
- <canvas id="chart" style="height:250px"></canvas>
+ const W={WTD:"week",MTD:"month",YTD:"year"}[range],ri=rangeInfo();
+ const counts={};Object.values(S.entries).forEach(e=>namesOf(e).forEach(n=>counts[n]=(counts[n]||0)+1));
+ const opts=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,40).map(x=>x[0]);
+ const filt=filterTag?`<button class="link sm" id="fclear">only days with ${esc(filterTag)} \u2715</button>`
+  :`<button class="link sm" id="fbtn">filter by tag</button>${showFilter?`<div class="tags" style="margin-top:6px">${opts.map(n=>`<button class="tg ${typeOf(n)||N}" data-f="${esc(n)}"><i></i>${esc(n)}</button>`).join("")||'<span class="s">nothing logged yet</span>'}</div>`:""}`;
+ return `<h1>Trends</h1><div class="seg top">${["WTD","MTD","YTD"].map(r=>`<button data-r="${r}" class="${r===range?"on":""}">${r}</button>`).join("")}</div>
+ <div class="card"><h2>This ${W}</h2>${summaryFor(ri.from,today(),W)}</div>
+ <div class="card"><canvas id="chart" style="height:250px"></canvas>
  <div class="legend"><span><i style="background:var(--g)"></i>mood</span><span><i style="background:var(--g);opacity:.5"></i>positives</span><span><i style="background:var(--b);opacity:.6"></i>stressors</span></div>
- <div class="s" id="cstat" style="white-space:pre-line;margin-top:8px"></div>
- <button class="link" id="fbtn" style="font-size:13px">${filterTag?"only days with "+esc(filterTag)+" · change":"filter by tag"}</button>
- <select id="ftag" class="${filterTag||showFilter?"":"hidden"}"><option value="">All days</option>${allTags().map(([t])=>`<option ${t===filterTag?"selected":""}>${esc(t)}</option>`).join("")}</select></div>
- <div class="card"><h2>Triggers and stressors · ${range}</h2>${timelineHTML()}</div>
- <div class="card"><h2>This week</h2>${summary(7)}</div><div class="card"><h2>This month</h2>${summary(30)}</div>
+ <div class="s" id="cstat" style="white-space:pre-line;margin-top:8px"></div>${filt}</div>
+ <div class="card"><h2>Triggers and stressors \u00b7 ${range}</h2>${timelineHTML("neg")}</div>
+ <div class="card"><h2>Positives \u00b7 ${range}</h2>${timelineHTML("pos")}</div>
  <div class="card"><h2>What goes with what</h2>${corr()}</div>`;
-},
-convos(){
+},convos(){
  const warn=`<div class="warn"><b>Before you paste:</b> remove names, addresses, ID or account numbers, passwords, and medical or financial details. Emails, numbers and links are stripped for you, but names and other details can slip through.<label><input type="checkbox" id="okp"> I removed anything private</label></div>`;
  const intro=chatStep?`<div class="card"><div class="t">Check before it's sent</div><p class="s" style="margin:4px 0 8px">This exact text will be sent to Anthropic's Claude to be broken down. Edit or delete anything you don't want sent. Tip: change your own speaker label to <b>Me</b> so it knows which side is you.</p>
   <textarea id="rtext" style="min-height:220px">${esc(chatStep.text)}</textarea>${chatStep.err?`<p class="s" style="color:var(--b)">${esc(chatStep.err)}</p>`:""}
@@ -671,19 +689,25 @@ function bind(){
  $("#nav").onclick=e=>{const b=e.target.closest("button");if(b){view=b.dataset.v;if(view==="today")sel=today();render()}};
  const A=$("#app");
  if(view==="today"){
-  // the slider only moves when you press and slide, never on a plain tap
-  const line=$("#line");let dragging=false,sx=0,sm=0,sid=null;
-  line.onpointerdown=ev=>{sid=ev.pointerId;sx=ev.clientX;sm=draft.mood;dragging=false};
-  line.onpointermove=ev=>{if(ev.pointerId!==sid)return;const dx=ev.clientX-sx;
-   if(!dragging){if(Math.abs(dx)<8)return;dragging=true;try{line.setPointerCapture(ev.pointerId)}catch(e){}}
-   const w=line.getBoundingClientRect().width||300;draft.mood=Math.max(0,Math.min(100,Math.round(sm+dx/w*100)));updLine();touched()};
-  line.onpointerup=line.onpointercancel=()=>{sid=null;dragging=false};
-  line.onkeydown=ev=>{const d={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1}[ev.key];if(d){draft.mood=Math.max(0,Math.min(100,draft.mood+d*(ev.shiftKey?10:1)));updLine();touched();ev.preventDefault()}};
-  A.querySelectorAll(".dots").forEach(box=>box.querySelectorAll(".rd").forEach(b=>b.onclick=()=>{const k=box.dataset.k,n=+b.dataset.n;draft[k]=draft[k]===n?null:n;box.querySelectorAll(".rd").forEach(x=>x.classList.toggle("on",(draft[k]||0)>=+x.dataset.n));touched();lightUp(b,draft.mood,.8)}));
+  // the slider only moves when you press and slide, never on a plain tap.
+// press near the dot to grab it, or press anywhere on the line and slide to nudge. Up/down drift is ignored.
+  const lw=$("#lwrap"),line=$("#line");let sid=null,dragging=false,sx=0,sm=0,grab=false;
+  const lr=()=>line.getBoundingClientRect();
+  const absMood=x=>{const r=lr(),px=(x-r.left)/r.width*LW;return Math.max(0,Math.min(100,Math.round((px-LPAD)/(LW-2*LPAD)*100)))};
+  lw.onpointerdown=ev=>{sid=ev.pointerId;sx=ev.clientX;sm=draft.mood;dragging=false;
+   const r=lr(),kx=r.left+((LPAD+draft.mood/100*(LW-2*LPAD))/LW)*r.width;grab=Math.abs(ev.clientX-kx)<40;
+   try{lw.setPointerCapture(ev.pointerId)}catch(e){}};
+  lw.onpointermove=ev=>{if(ev.pointerId!==sid)return;const dx=ev.clientX-sx;
+   if(!dragging){if(Math.abs(dx)<4)return;dragging=true}
+   const m=grab?absMood(ev.clientX):Math.max(0,Math.min(100,Math.round(sm+dx/(lr().width||300)*100)));
+   if(m!==draft.mood){draft.mood=m;updLine();touched()}};
+  lw.onpointerup=lw.onpointercancel=()=>{sid=null;dragging=false};
+  lw.tabIndex=0;lw.setAttribute("role","slider");
+  lw.onkeydown=ev=>{const d={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1}[ev.key];if(d){draft.mood=Math.max(0,Math.min(100,draft.mood+d*(ev.shiftKey?10:1)));updLine();touched();ev.preventDefault()}};  A.querySelectorAll(".dots").forEach(box=>box.querySelectorAll(".rd").forEach(b=>b.onclick=()=>{const k=box.dataset.k,n=+b.dataset.n;draft[k]=draft[k]===n?null:n;box.querySelectorAll(".rd").forEach(x=>x.classList.toggle("on",(draft[k]||0)>=+x.dataset.n));touched()}));
   const per=$("#per");if(per)per.onclick=()=>{draft.period=!draft.period;per.classList.toggle("on",draft.period);per.setAttribute("aria-checked",draft.period);touched()};
   const note=$("#note"),grow=()=>{note.style.height="auto";note.style.height=note.scrollHeight+"px"};
   note.oninput=e=>{draft.note=e.target.value;grow();touched()};grow();
-  A.querySelectorAll(".tg[data-tag]").forEach(t=>t.onclick=()=>{const n=t.dataset.tag,i=draft.tags.indexOf(n);i<0?draft.tags.push(n):draft.tags.splice(i,1);t.classList.toggle("on");touched();lightUp(t.querySelector("i")||t,draft.mood,.7)});
+  A.querySelectorAll(".tg[data-tag]").forEach(t=>t.onclick=()=>{const n=t.dataset.tag,i=draft.tags.indexOf(n);i<0?draft.tags.push(n):draft.tags.splice(i,1);t.classList.toggle("on");touched()});
   A.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{addingIn=b.dataset.add;render();$("#newtag").focus()});
   A.querySelectorAll(".sw").forEach(s=>s.onclick=()=>{addType=s.dataset.ty;A.querySelectorAll(".sw").forEach(x=>x.classList.toggle("sel",x===s))});
   A.querySelectorAll("[data-exp]").forEach(b=>b.onclick=()=>{const g=b.dataset.exp;expG.has(g)?expG.delete(g):expG.add(g);render()});
@@ -718,17 +742,14 @@ function bind(){
    d.onpointermove=ev=>{if(timer&&Math.hypot(ev.clientX-sx,ev.clientY-sy)>8)cancel()};
    d.onpointerup=d.onpointercancel=d.onpointerleave=cancel;
   });
-  const sc=(f)=>{const d=memoSel;if(!d||!S.memo[d]){toast("Tap a sticker first");return}setScale(d,(S.memo[d].s||1)*f);save()};
-  $("#bminus").onclick=()=>sc(1/1.2);$("#bplus").onclick=()=>sc(1.2);
-  $("#boff").onclick=()=>{if(!memoSel||!S.memo[memoSel]){toast("Tap a sticker first");return}delete S.memo[memoSel];memoSel=null;save();render()};
-  $("#bclear").onclick=e=>{const b=e.currentTarget;if(b.dataset.arm){S.memo={};memoSel=null;save();render();return}b.dataset.arm=1;b.textContent="sure?";b.classList.add("warn2");setTimeout(()=>{b.dataset.arm="";b.textContent="clear";b.classList.remove("warn2")},3000)};
+  $("#bclear").onclick=e=>{const b=e.currentTarget;if(b.dataset.arm){S.memo={};memoSel=null;save();render();return}b.dataset.arm=1;b.classList.add("warn2");toast("Tap the bin again to clear the board");setTimeout(()=>{b.dataset.arm="";b.classList.remove("warn2")},3000)};
  }
  if(view==="trends"){
   A.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{range=b.dataset.r;render()});
-  $("#ftag").onchange=e=>{filterTag=e.target.value;render()};
-  $("#fbtn").onclick=()=>{showFilter=!showFilter;$("#ftag").classList.toggle("hidden",!showFilter&&!filterTag)};
-  const tm=$("#tlmore");if(tm)tm.onclick=()=>{tlAll=!tlAll;render()};
- }
+  const fb=$("#fbtn");if(fb)fb.onclick=()=>{showFilter=!showFilter;render()};
+  const fc=$("#fclear");if(fc)fc.onclick=()=>{filterTag="";showFilter=false;render()};
+  A.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{filterTag=b.dataset.f;showFilter=false;render()});
+  A.querySelectorAll("[data-tl]").forEach(b=>b.onclick=()=>{const k=b.dataset.tl;tlAll[k]=!tlAll[k];render()}); }
  if(view==="convos"){
   const add=$("#addc");
   if(add)add.onclick=()=>{const raw=$("#ctext").value.trim(),msg=$("#chatmsg");
@@ -776,28 +797,27 @@ function rangeInfo(){
 // stressors = negative things that aren't feelings or habits; positives = good things that aren't feelings
 const stressNames=e=>{const f=new Set(feelingNames());return namesOf(e).filter(n=>typeOf(n)===B&&!f.has(n)&&!HABITS.includes(n))};
 const goodNames=e=>{const f=new Set(feelingNames());return namesOf(e).filter(n=>typeOf(n)===G&&!f.has(n)&&!HABITS.includes(n))};
-function stressorsInRange(){
+function factorsInRange(fn){
  const {from,to}=rangeInfo(),c={};
- Object.entries(S.entries).filter(([d])=>d>=from&&d<=to).forEach(([,e])=>stressNames(e).forEach(n=>c[n]=(c[n]||0)+1));
+ Object.entries(S.entries).filter(([d])=>d>=from&&d<=to).forEach(([,e])=>fn(e).forEach(n=>c[n]=(c[n]||0)+1));
  return Object.entries(c).sort((a,b)=>b[1]-a[1]);
 }
-// one row per stressor (top 5, with a button for the rest); a bar for every stretch of days it was around
-function timelineHTML(){
- const {from,to}=rangeInfo(),end=to<today()?to:today(),days=[];
+// one row per factor (top 5, with a button for the rest); a bar for every stretch of days it was around
+function timelineHTML(kind){
+ const pos=kind==="pos",{from,to}=rangeInfo(),end=to<today()?to:today(),days=[];
  for(let d=from;d<=end;d=addDays(d,1))days.push(d);
- const total=Math.round((new Date(to)-new Date(from))/864e5)+1,all=stressorsInRange(),rows=tlAll?all:all.slice(0,5);
- if(!rows.length)return '<p class="s" style="margin:0">Nothing logged in this range.</p>';
+ const total=Math.round((new Date(to)-new Date(from))/864e5)+1,all=factorsInRange(pos?goodNames:stressNames),rows=tlAll[kind]?all:all.slice(0,5);
+ if(!rows.length)return `<p class="s" style="margin:0">${pos?"No positives logged in this range.":"Nothing logged in this range."}</p>`;
  const html=rows.map(([n,c])=>{
   const runs=[];let s=-1;
   days.forEach((d,i)=>{const on=!!(S.entries[d]&&namesOf(S.entries[d]).includes(n));
    if(on&&s<0)s=i;
    if(s>=0&&(!on||i===days.length-1)){const e=on?i:i-1;runs.push([s,e-s+1,e]);s=-1}});
   const last=runs[runs.length-1],now=last&&last[2]>=days.length-2?last[1]:0;
-  return `<div class="tl"><div class="tln"><b>${esc(n)}</b><span class="s">${c} day${c>1?"s":""}${now>1?` · ${now} in a row`:""}</span></div>
-   <div class="tlt">${runs.map(([st,len])=>`<div class="tlb" style="left:${st/total*100}%;width:max(${len/total*100}%,6px)"></div>`).join("")}</div></div>`}).join("");
- return html+`<div class="tlax"><span>${from.slice(5)}</span><span>${to.slice(5)}</span></div>`+(all.length>5?`<button class="link sm" id="tlmore">${tlAll?"show top 5":"show all "+all.length}</button>`:"");
-}
-function draw(){
+  return `<div class="tl"><div class="tln"><b>${esc(n)}</b><span class="s">${c} day${c>1?"s":""}${now>1?` \u00b7 ${now} in a row`:""}</span></div>
+   <div class="tlt">${runs.map(([st,len])=>`<div class="tlb ${pos?"pos":""}" style="left:${st/total*100}%;width:max(${len/total*100}%,6px)"></div>`).join("")}</div></div>`}).join("");
+ return html+`<div class="tlax"><span>${from.slice(5)}</span><span>${to.slice(5)}</span></div>`+(all.length>5?`<button class="link sm" data-tl="${kind}">${tlAll[kind]?"show top 5":"show all "+all.length}</button>`:"");
+}function draw(){
  const c=$("#chart"),dpr=devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;c.width=W*dpr;c.height=H*dpr;const x=c.getContext("2d");x.scale(dpr,dpr);
  const {from,to}=rangeInfo(),span=(new Date(to)-new Date(from))/864e5||1;
  const pts=entryList().filter(([d,e])=>d>=from&&d<=to&&(!filterTag||namesOf(e).includes(filterTag)));
@@ -881,7 +901,7 @@ function drawBoard(){
  if(keys.length){const h=$("#bh");if(h)h.remove()}
  keys.forEach(d=>{
   const p=S.memo[d],s=document.createElement("div");s.className="stk"+(memoSel===d?" sel":"");s.dataset.d=d;
-  s.innerHTML=faceFor(d,S.entries[d].mood,stkSize(p));s.title=d;s.style.cssText=`left:${p.x}px;top:${p.y}px;--rot:${p.r}deg`;
+  s.innerHTML=faceFor(d,S.entries[d].mood,stkSize(p));s.title=d;const tt=S.entries[d].mood/100;s.style.cssText=`left:${p.x}px;top:${p.y}px;--rot:${p.r}deg;--lc:${fcol(d,S.entries[d].mood)};--li:${(tt*tt).toFixed(2)};--dur:${(3.4-2.2*tt).toFixed(1)}s;--dl:-${(hashStr(d)%30)/10}s`;
   b.appendChild(s)});
  const ptrs=new Map();let drag=null,pinch=null,dirty=false;
  const mark=d=>{memoSel=d;b.querySelectorAll(".stk").forEach(x=>x.classList.toggle("sel",x.dataset.d===d))};
@@ -898,7 +918,7 @@ function drawBoard(){
  const up=ev=>{ptrs.delete(ev.pointerId);if(ptrs.size<2)pinch=null;if(drag&&ev.pointerId===drag.id)drag=null;if(dirty&&ptrs.size===0){dirty=false;save()}};
  b.onpointerup=up;b.onpointercancel=up;
  b.addEventListener("wheel",ev=>{if(!memoSel||!S.memo[memoSel])return;ev.preventDefault();setScale(memoSel,(S.memo[memoSel].s||1)*(ev.deltaY<0?1.08:.92));dirty=true;clearTimeout(window.__wt);window.__wt=setTimeout(()=>{save();dirty=false},300)},{passive:false});
- b.ondblclick=ev=>{const st=ev.target.closest(".stk");if(st){delete S.memo[st.dataset.d];memoSel=null;save();render()}};
+
 }
 
 /* ---------- export ---------- */
@@ -909,7 +929,7 @@ function exportCSV(){
 }
 function printReport(){
  const st=stressors(),w=window.open("");
- w.document.write(`<title>Report</title><body style="font-family:sans-serif;max-width:700px;margin:auto"><h1>Mood report ${today()}</h1><h2>Last 7 days</h2>${summary(7)}<h2>Last 30 days</h2>${summary(30)}<h2>Active stressors</h2><ul>${st.map(s=>`<li>${esc(s.tag)}: ${s.last14}/14 days, first logged ${s.first}</li>`).join("")}</ul><h2>Daily log</h2><table border=1 cellpadding=4 style="border-collapse:collapse"><tr><th>Date<th>Mood<th>Sleep<th>Water<th>Meals<th>Tags<th>Note</tr>${entryList().slice(-60).map(([d,e])=>`<tr><td>${d}<td>${e.mood}%<td>${e.sleep??""}<td>${e.water??""}<td>${e.food??""}<td>${esc(namesOf(e).join(", "))}<td>${esc(e.note||"")}`).join("")}</table>`);
+ w.document.write(`<title>Report</title><body style="font-family:sans-serif;max-width:700px;margin:auto"><h1>Mood report ${today()}</h1><h2>Last 7 days</h2>${summaryFor(addDays(today(),-6),today(),"week")}<h2>Last 30 days</h2>${summaryFor(addDays(today(),-29),today(),"month")}<h2>Active stressors</h2><ul>${st.map(s=>`<li>${esc(s.tag)}: ${s.last14}/14 days, first logged ${s.first}</li>`).join("")}</ul><h2>Daily log</h2><table border=1 cellpadding=4 style="border-collapse:collapse"><tr><th>Date<th>Mood<th>Sleep<th>Water<th>Meals<th>Tags<th>Note</tr>${entryList().slice(-60).map(([d,e])=>`<tr><td>${d}<td>${e.mood}%<td>${e.sleep??""}<td>${e.water??""}<td>${e.food??""}<td>${esc(namesOf(e).join(", "))}<td>${esc(e.note||"")}`).join("")}</table>`);
  w.print();
 }
 
