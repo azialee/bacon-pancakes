@@ -229,7 +229,7 @@ const THEMES=[
  ["Being hard on yourself",/\b(doubt\w*|imposter|impostor|worthless|stupid|dumb|hate myself|ashamed|embarrass\w*|my fault|blame myself|not enough|disappoint\w*)\b/i],
  ["Feeling overwhelmed or drained",/\b(overwhelm\w*|too much|drowning|can'?t cope|burn(ed|t)? ?out|burnout|exhausted|no energy|drained|spent)\b/i],
  ["Feeling stuck or unmotivated",/\b(unmotivated|no motivation|can'?t be bothered|procrastinat\w*|stuck|pointless|what'?s the point|going nowhere)\b/i],
- ["Pressure at work",/\b(work|boss|deadline|overtime|shift|manager|meeting|job|colleague\w*|client\w*)\b/i],
+ ["Pressure at work",/\b(boss|deadline\w*|overtime|workload|manager|coworker\w*|colleague\w*|client\w*|laid off|fired|so much work|too much work|work (is|was|has been|feels) (stressful|hard|awful|exhausting|too much|crazy)|(stressful|awful|toxic) (work|job|workplace))\b/i],
  ["Family tension",/\b(mom|dad|mother|father|family|sister|brother|parents?)\b/i],
  ["Tension with someone close",/\b(partner|boyfriend|girlfriend|husband|wife|relationship|argu\w+|fight|fought|breakup|broke up)\b/i],
  ["Anxiety or panic",/\b(anxious|anxiety|panic|worried|worry|scared|afraid|nervous|can'?t breathe|racing|dread)\b/i],
@@ -242,6 +242,9 @@ const THEMES=[
  ["Body and health",/\b(sick|pain|injur\w+|headache|cramps?|doctor|nausea)\b/i],
  ["Good moments",/\b(happy|grateful|proud|excited|fun|relieved|laugh\w*|enjoy\w*|good day)\b/i]
 ];
+// a theme found in a note or chat counts as the tag it matches; themes with no matching tag keep their own name
+const THEME_TAG={"Feeling not effective or good enough":"Unsure of myself","Being hard on yourself":"Guilty","Feeling overwhelmed or drained":"Stressed","Pressure at work":"Work issue","Family tension":"Family conflict","Tension with someone close":"Partner conflict","Anxiety or panic":"Anxious","Low mood":"Sad","Feeling alone":"Lonely","Frustration or anger":"Angry","Grief or loss":"Loss or death","Sleep trouble":"Poor sleep","Money worries":"Money worry","Good moments":"Happy"};
+const themeName=k=>THEME_TAG[k]||k;
 const ICON={
  today:'<path d="M3 8h15v8H3zM18 11h2v2h-2z"/><path d="M6 11v2"/>',
  calendar:'<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
@@ -340,7 +343,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.11 \u00b7 8 Oct 2026";
+const VERSION="0.12 \u00b7 8 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -361,8 +364,8 @@ let TC=null;
 function tagCache(){
  if(TC&&TC.v===DATAV)return TC;
  const all=[...GROUPS.flatMap(groupTags),...DERIVED],seen=new Set(all.map(t=>t[0]));
- Object.values(S.entries).forEach(e=>noteThemes(e.note).forEach(k=>{const nm=k+" (note)";if(!seen.has(nm)){seen.add(nm);all.push([nm,/^good moments$/i.test(k)?G:B])}}));
- Object.values(chatMap()).forEach(ks=>ks.forEach(k=>{const nm=k+" (chat)";if(!seen.has(nm)){seen.add(nm);all.push([nm,/^good moments$/i.test(k)?G:B])}}));
+ Object.values(S.entries).forEach(e=>noteThemes(e.note).forEach(k=>{const nm=themeName(k);if(!seen.has(nm)){seen.add(nm);all.push([nm,/^good moments$/i.test(k)?G:B])}}));
+ Object.values(chatMap()).forEach(ks=>ks.forEach(k=>{const nm=themeName(k);if(!seen.has(nm)){seen.add(nm);all.push([nm,/^good moments$/i.test(k)?G:B])}}));
  const type={};all.forEach(t=>{type[t[0]]=t[1]});
  TC={v:DATAV,all:all,type:type};return TC;
 }
@@ -377,7 +380,7 @@ function namesOf(e){
  if(e.sleep!=null)e.sleep<=2?n.push("Poor sleep"):e.sleep>=4&&n.push("Good sleep");
  if(e.water!=null)e.water<=2?n.push("Low water"):e.water>=4&&n.push("Enough water");
  if(e.food!=null)e.food<=2?n.push("Skipped meals"):e.food>=4&&n.push("Ate well");
- noteThemes(e.note).forEach(k=>n.push(k+" (note)"));
+ noteThemes(e.note).forEach(k=>{const nm=themeName(k);if(n.indexOf(nm)<0)n.push(nm)});
  return n;
 }
 // themes from saved chats count on the day of the chat, shown as "<theme> (chat)" (top 3 themes per chat)
@@ -389,8 +392,8 @@ function chatMap(){
   Object.entries(c.themes||{}).sort((a,b)=>b[1].length-a[1].length).slice(0,3).forEach(x=>{(m[d]=m[d]||[]);if(m[d].indexOf(x[0])<0)m[d].push(x[0])})});
  CTC={v:DATAV,m:m};return m;
 }
-const chatNames=d=>(chatMap()[d]||[]).map(k=>k+" (chat)");
-const dayNames=d=>{const e=S.entries[d];return (e?namesOf(e):[]).concat(chatNames(d))};
+const chatNames=d=>(chatMap()[d]||[]).map(themeName);
+const dayNames=d=>{const e=S.entries[d],base=e?namesOf(e):[];chatNames(d).forEach(nm=>{if(base.indexOf(nm)<0)base.push(nm)});return base};
 const allDates=()=>{const s=new Set(Object.keys(S.entries));Object.keys(chatMap()).forEach(d=>s.add(d));return Array.from(s).sort()};// ---- tag order / removal (the user can reorder and hide what they don't use) ----
 function tagList(g){
  const hid=new Set(S.set.hidden||[]),ord=(S.set.order||{})[g.name]||[],manual=!!(S.set.manual||{})[g.name],use=manual?null:tagUse();
