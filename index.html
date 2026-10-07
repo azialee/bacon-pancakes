@@ -186,8 +186,8 @@ ul.plain{padding-left:18px;margin:6px 0}
 .tlb.pos{background:var(--g)}
 .tlax{display:flex;justify-content:space-between;font-size:11px;color:var(--mute);margin-left:146px}
 
-.brand{text-align:center;font-size:13px;letter-spacing:.16em;color:var(--g);font-weight:600;margin:2px 0 4px}
-.brand span{letter-spacing:0;display:inline-block;transform:rotate(90deg);margin-left:2px}
+.brand{text-align:center;font-size:24px;letter-spacing:.1em;color:var(--g);font-weight:600;margin:0 0 12px;line-height:1.1}
+.brand span{letter-spacing:0;display:inline-block;transform:rotate(90deg);margin-left:4px}
 .pill{display:inline-block;padding:3px 11px;border-radius:14px;background:var(--gs);font-size:13px;margin:2px 3px 2px 0}
 .nosave{background:#fff3d6;color:#5a4300;border-radius:18px;padding:12px 14px;font-size:13px;margin-bottom:12px}
 [data-theme=dark] .nosave{background:#3a3016;color:#f1deb0}
@@ -340,7 +340,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.10 \u00b7 8 Oct 2026";
+const VERSION="0.11 \u00b7 8 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -650,7 +650,7 @@ today(){
  if(!drafts[sel]){const e=S.entries[sel]||{};drafts[sel]={date:sel,mood:e.mood??50,tags:[...(e.tags||[])],note:e.note||"",sleep:e.sleep??null,water:e.water??null,food:e.food??null,period:!!e.period}}
  draft=drafts[sel];
  const m=draft.mood,fc=fcol(sel,m);
- return `<h1>${sel===today()?"how are you today?":"how were you on "+niceDate(sel)+"?"}</h1>${dateStrip()}
+ return `${dateStrip()}${sel===today()?"":`<div class="s" style="text-align:center;margin:-2px 0 8px">logging for ${niceDate(sel)}</div>`}
  <button class="sosbtn" id="sos">how am I?</button>
  <div class="card"><div class="moodhead"><div class="pct" id="pct" style="color:${fc};text-shadow:${numGlow(m,sel)}">${m}</div><div id="face">${faceFor(sel,m,56)}</div></div>
   <div class="lwrap" id="lwrap">${lineSVG(sel,m)}</div><div class="hint">slide along the line</div></div>
