@@ -235,7 +235,12 @@ details.dr p{margin:6px 0 0 114px;font-size:13.5px;color:var(--mute);line-height
 .mini span{color:var(--mute);width:48px}
 .mini b{font-size:16px}
 .mini i{font-style:normal;font-size:12px;font-weight:600}
-.wr{margin:0 0 10px;line-height:1.55}/* nav */
+.wr{margin:0 0 10px;line-height:1.55}.day.logged::before{content:"";position:absolute;top:-3px;left:50%;width:48px;height:48px;margin-left:-24px;border-radius:50%;pointer-events:none}
+.day.logged>svg,.day.logged>small{position:relative;z-index:1}
+.day.t0::before{background:radial-gradient(circle,rgba(80,100,135,.55),transparent 70%);opacity:.30}
+.day.t1::before{background:radial-gradient(circle,rgba(90,115,150,.5),transparent 70%);opacity:.18}
+.day.t3::before{background:radial-gradient(circle,var(--hc),transparent 68%);opacity:.22}
+.day.t4::before{background:radial-gradient(circle,var(--hc),transparent 66%);opacity:.40}/* nav */
 nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));background:var(--card);border-radius:30px;display:flex;gap:4px;padding:6px;box-shadow:0 4px 20px #0000001a}
 nav button{width:46px;height:46px;border-radius:50%;border:0;background:none;color:var(--mute);display:grid;place-items:center;cursor:pointer}
 nav button.on{background:var(--g);color:#fff}[data-theme=dark] nav button.on{color:#10201a}
@@ -308,10 +313,17 @@ const svg=(n,c="")=>`<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="c
 const hashStr=s=>{let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h};
 const rnd=seed=>{let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296}};
 const isDark=()=>document.documentElement.dataset.theme==="dark";
-// each day gets its own hue; mood decides how vivid it is. The animal, the number and the slider all use it.
-const HUES=[8,28,46,95,150,172,198,222,262,292,330];
-function fcol(date,m){const t=m/100,h=HUES[hashStr(date+"c")%HUES.length];
- return isDark()?`hsl(${h},${8+82*t}%,${36+28*t}%)`:`hsl(${h},${10+82*t}%,${(58-22*t-((h>=28&&h<=100)?8*t:0)).toFixed(1)}%)`}
+// five mood tiers: 0 awful, 1 low, 2 middling, 3 good, 4 great
+const tierOf=m=>m<20?0:m<40?1:m<60?2:m<80?3:4;
+// each tier has its own family of colours: cool and dim when low, warm and bright when good, vivid and varied when great
+const TIERHUES=[[205,215,225,235,250],[185,195,215,255,270],[40,75,110,150,170],[8,20,34,48,340,355],[300,320,330,45,95,170,190]];
+const TIERSAT=[[14,24],[22,34],[32,46],[66,80],[88,96]];
+function fcol(date,m){
+ const tr=tierOf(m),hs=TIERHUES[tr],h=hs[hashStr(date+"c")%hs.length],f=(m-tr*20)/20,sp=TIERSAT[tr],sat=sp[0]+(sp[1]-sp[0])*f;
+ if(isDark()){const L=[[36,40],[40,46],[46,52],[56,62],[62,70]][tr];return `hsl(${h},${sat.toFixed(0)}%,${(L[0]+(L[1]-L[0])*f).toFixed(1)}%)`}
+ const L=[[60,57],[56,52],[50,46],[47,43],[44,40]][tr],yel=(h>=28&&h<=110&&tr>=2)?8:0;
+ return `hsl(${h},${sat.toFixed(0)}%,${(L[0]+(L[1]-L[0])*f-yel).toFixed(1)}%)`;
+}
 // fine-line animals. head = ellipse [cx,cy,rx,ry]; p = extra shapes (e: ellipse, l: polyline); eyes/mouth placed per animal
 const ANIMALS=[
  {n:"cat",h:[25,30,15,12],p:[{l:[[11,24],[12,9],[22,17]]},{l:[[39,24],[38,9],[28,17]]},{l:[[10,31],[3,29]]},{l:[[10,34],[3,35]]},{l:[[40,31],[47,29]]},{l:[[40,34],[47,35]]},{l:[[23.5,31],[26.5,31],[25,32.8]],c:1}],eyes:[19.5,30.5,27],mouth:[25,35.5,6]},
@@ -321,17 +333,25 @@ const ANIMALS=[
  {n:"fox",h:null,p:[{l:[[25,43],[9,27],[9,9],[19,17],[31,17],[41,9],[41,27]],c:1},{l:[[23.5,34],[26.5,34],[25,35.6]],c:1}],eyes:[18.5,31.5,27.5],mouth:[25,39,4]},
  {n:"owl",h:[25,28,15,15],p:[{l:[[12,18],[11,7],[20,13]]},{l:[[38,18],[39,7],[30,13]]},{e:[19,26,5.2,5.2]},{e:[31,26,5.2,5.2]},{l:[[23.5,31.5],[26.5,31.5],[25,34.5]],c:1}],eyes:[19,31,26],mouth:[25,39,4]},
  {n:"frog",h:[25,31,17,10],p:[{e:[15.5,19,5,5]},{e:[34.5,19,5,5]}],eyes:[15.5,34.5,19],mouth:[25,36,10]},
- {n:"mouse",h:[25,30,13,12],p:[{e:[12,15,6,6]},{e:[38,15,6,6]},{l:[[11,31],[3,30]]},{l:[[11,34],[3,35]]},{l:[[39,31],[47,30]]},{l:[[39,34],[47,35]]},{l:[[24,32],[26,32],[25,33.4]],c:1}],eyes:[20,30,27],mouth:[25,37,4.5]}
+ {n:"mouse",h:[25,30,13,12],p:[{e:[12,15,6,6]},{e:[38,15,6,6]},{l:[[11,31],[3,30]]},{l:[[11,34],[3,35]]},{l:[[39,31],[47,30]]},{l:[[39,34],[47,35]]},{l:[[24,32],[26,32],[25,33.4]],c:1}],eyes:[20,30,27],mouth:[25,37,4.5]},
+ {n:"panda",h:[25,29,15,13],p:[{e:[11,15,5,5]},{e:[39,15,5,5]},{e:[19,28,4,5.2]},{e:[31,28,4,5.2]},{e:[25,33.5,2.6,1.8]}],eyes:[19,31,28],mouth:[25,37.2,4]},
+ {n:"pig",h:[25,29,15,13],p:[{l:[[12,19],[10,9],[20,16]],c:1},{l:[[38,19],[40,9],[30,16]],c:1},{e:[25,34,6.5,4.6]},{e:[23,34,1,1.3]},{e:[27,34,1,1.3]}],eyes:[19,31,26],mouth:[25,40.2,3.5]},
+ {n:"sheep",h:[25,32,10.5,12],p:[{e:[14,17,6,5]},{e:[25,13,7,6]},{e:[36,17,6,5]},{e:[12.5,32,4.5,2.8]},{e:[37.5,32,4.5,2.8]},{l:[[24,34],[26,34],[25,35.4]],c:1}],eyes:[21,29,30],mouth:[25,38.5,4]},
+ {n:"penguin",h:[25,28,14,15],p:[{e:[25,34,9,8]},{l:[[23,32],[27,32],[25,35]],c:1}],eyes:[20,30,26],mouth:[25,39.5,3.5]},
+ {n:"koala",h:[25,29,12.5,12],p:[{e:[10,16,6.5,6]},{e:[40,16,6.5,6]},{e:[10,16,3.2,3]},{e:[40,16,3.2,3]},{e:[25,31.5,3.2,4.2]}],eyes:[19,31,26],mouth:[25,38.5,4]},
+ {n:"hedgehog",h:[25,33,11,9.5],p:[{l:[[9,28],[6,20],[12,23],[12,13],[18,19],[21,8],[25,17],[30,9],[32,18],[38,12],[38,22],[44,19],[41,28]]},{e:[25,35,2,1.5]}],eyes:[20,30,31],mouth:[25,39.5,3.5]},
+ {n:"chick",h:[25,29,14,14],p:[{l:[[21,16],[23,10],[25,15],[28,9],[29,16]]},{l:[[23.5,32],[26.5,32],[25,34.2]],c:1}],eyes:[19.5,30.5,28],mouth:[25,38.2,3.5]},
+ {n:"deer",h:[25,32,11.5,11],p:[{l:[[17,22],[13,12],[10,14]]},{l:[[13,12],[14,6]]},{l:[[33,22],[37,12],[40,14]]},{l:[[37,12],[36,6]]},{e:[11,25,3.5,5.5]},{e:[39,25,3.5,5.5]},{e:[25,37,3,2.2]}],eyes:[20,30,31],mouth:[25,40.5,3.5]}
 ];
-const SHUF=[2,5,0,7,3,6,1,4];
+const SHUF=[5,12,0,9,14,3,7,11,2,15,6,1,10,4,13,8];
 function animalFor(date){
  const dn=Math.floor(Date.parse(String(date).slice(0,10)+"T00:00:00Z")/864e5);
  const i=isNaN(dn)?hashStr(String(date)):dn;
- return ANIMALS[SHUF[((i*3)%8+8)%8]]; // step of 3 through a shuffled list: neighbouring days never repeat
+ return ANIMALS[SHUF[((i*5)%16+16)%16]]; // step of 5 through a shuffled list: neighbouring days never repeat
 }
 const glowFor=m=>{const t=m/100;return t>.5?Math.pow(t,3)*8:0};
 function faceFor(date,m,size=40){
- const t=m/100,r=rnd(hashStr(date)),rough=Math.pow(1-t,1.3)*1.8,c=fcol(date,m),J=a=>(r()-.5)*2*a,A=animalFor(date);
+ const t=m/100,tr=tierOf(m),r=rnd(hashStr(date)),rough=Math.pow(1-t,1.3)*1.8,c=fcol(date,m),J=a=>(r()-.5)*2*a,A=animalFor(date);
  const f=n=>n.toFixed(1),out=[];
  const ell=([cx,cy,rx,ry])=>{const N=24,q=[];for(let i=0;i<N;i++){const a=i/N*Math.PI*2;q.push(f(cx+rx*Math.cos(a)+J(rough))+" "+f(cy+ry*Math.sin(a)+J(rough)))}return "M"+q.join("L")+"Z"};
  const lin=(pts,close)=>{const q=[];const P=close?[...pts,pts[0]]:pts;
@@ -340,19 +360,33 @@ function faceFor(date,m,size=40){
   const [lx,ly]=P[P.length-1];q.push(f(lx+J(rough*.8))+" "+f(ly+J(rough*.8)));return "M"+q.join("L")};
  if(A.h)out.push(ell(A.h));
  A.p.forEach(s=>out.push(s.e?ell(s.e):lin(s.l,s.c)));
- const k=(t-.5)*2,variant=Math.floor(r()*3),[e1,e2,ey]=A.eyes;
+ const k=(t-.5)*2,[e1,e2,ey]=A.eyes,v=Math.floor(r()*2);
+ // eyes and brows tell the mood: tired lines and sad brows when low, plain dots in the middle, happy arcs when good, sparkle eyes when great
  const eye=x=>{const y=ey+J(rough*.3);
-  if(variant===0)return `M${f(x-1.5)} ${f(y)}h3`;
-  if(variant===1)return `M${f(x)} ${f(y-2)}v4`;
-  return `M${f(x-1.8)} ${f(y+1)}q1.8 -3 3.6 0`};
+  if(tr===0)return `M${f(x-2)} ${f(y+.5)}h4`;
+  if(tr===1)return `M${f(x)} ${f(y-.8)}m-1.1 0a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0`;
+  if(tr===2)return v?`M${f(x-1.5)} ${f(y)}h3`:`M${f(x)} ${f(y-2)}v4`;
+  if(tr===3)return `M${f(x-2)} ${f(y+1.2)}q2 -3.4 4 0`;
+  return `M${f(x)} ${f(y-2.6)}v5.2M${f(x-2.6)} ${f(y)}h5.2M${f(x-1.7)} ${f(y-1.7)}l3.4 3.4M${f(x-1.7)} ${f(y+1.7)}l3.4 -3.4`;
+ };
  out.push(eye(e1),eye(e2));
+ if(tr<=1){const lift=tr===0?3.2:1.8;out.push(`M${f(e1-3)} ${f(ey-4)}L${f(e1+2.4)} ${f(ey-4-lift)}`,`M${f(e2+3)} ${f(ey-4)}L${f(e2-2.4)} ${f(ey-4-lift)}`)}
+ else if(tr>=3){out.push(`M${f(e1-2.5)} ${f(ey-4.6)}q2.5 -2.2 5 0`,`M${f(e2-2.5)} ${f(ey-4.6)}q2.5 -2.2 5 0`)}
+ if(tr===0){[e1,e2].forEach(x=>out.push(`M${f(x)} ${f(ey+3.2)}q-1.8 3 0 4.8q1.8 -1.8 0 -4.8z`));out.push(`M${f(e1-.3)} ${f(ey+9)}v4M${f(e2+.3)} ${f(ey+9)}v4`)} // tears
+ if(tr===1)out.push(`M45.5 14q-2 3 0 4.6q2 -1.6 0 -4.6z`); // worried sweat drop
+ if(tr===0){out.push(`M4 8.5a3 3 0 0 1 0 -6a4 4 0 0 1 7.5 -1.2a3.2 3.2 0 0 1 3.5 7.2z`,`M6 11.5l-.8 2.6M10 11.5l-.8 2.6M14 11.5l-.8 2.6`)} // storm cloud
+ if(tr>=3){out.push(`M${f(e1-4.2)} ${f(ey+5)}q1.6 1.4 3.2 0`,`M${f(e2+1)} ${f(ey+5)}q1.6 1.4 3.2 0`)} // blush
+ const spark=(x,y,s)=>`M${x-s} ${y}h${2*s}M${x} ${y-s}v${2*s}`;
+ if(tr===4){out.push(spark(5,6,2.4),spark(46,4,2),spark(47,19,1.5));if(m>=92)out.push(`M5 19c-3 -2.4 -4.4 -4.6 -2.4 -6.2c1.5 -.8 2.4.6 2.4 1.6c0 -1 .9 -2.4 2.4 -1.6c2 1.6 .6 3.8 -2.4 6.2z`)}
+ else if(tr===3&&m>=70)out.push(spark(46,6,2));
  const [mx,my,hw]=A.mouth;let mouth="";
  for(let i=0;i<=8;i++){const u=i/8,x=mx-hw+2*hw*u,y=my-1.5*k+hw*.5*k*(1-Math.pow(2*u-1,2));mouth+=(i?"L":"M")+f(x+J(rough*.3))+" "+f(y+J(rough*.35))}
  out.push(mouth);
- const gl=glowFor(m)*Math.min(1,size/36)*(isDark()?1:.45),op=(.55+.45*t).toFixed(2);
- return `<svg class="fsvg" width="${size}" height="${size}" viewBox="-2 0 54 50" fill="none" stroke="${c}" stroke-width="${isDark()?1.5:1.8}" stroke-linecap="round" stroke-linejoin="round" style="overflow:visible;opacity:${op};filter:drop-shadow(0 0 ${gl.toFixed(1)}px ${c})">${out.map(d=>`<path d="${d}"/>`).join("")}</svg>`;
-}
-function blankFace(size=34){
+ if(m>=85){const ye=my-1.5*k;out.push(`M${f(mx-hw*.8)} ${f(ye+.4)}Q${f(mx)} ${f(ye+hw*1.35)} ${f(mx+hw*.8)} ${f(ye+.4)}`)} // open, laughing mouth
+ if(m<12)out.push(`M${f(mx-hw*.5)} ${f(my+2.6)}q${f(hw*.5)} -1.4 ${f(hw)} 0`); // trembling lip
+ const gl=glowFor(m)*Math.min(1,size/36)*(isDark()?1:.45),op=(.55+.45*t).toFixed(2),tilt=tr===0?-7:tr===1?-3:0;
+ return `<svg class="fsvg" width="${size}" height="${size}" viewBox="-2 0 54 50" fill="none" stroke="${c}" stroke-width="${isDark()?1.5:1.8}" stroke-linecap="round" stroke-linejoin="round" style="overflow:visible;opacity:${op};filter:drop-shadow(0 0 ${gl.toFixed(1)}px ${c})${tilt?";transform:rotate("+tilt+"deg)":""}">${out.map(d=>`<path d="${d}"/>`).join("")}</svg>`;
+}function blankFace(size=34){
  const ring=[];for(let i=0;i<26;i++){const a=i/26*Math.PI*2;ring.push(`${(25+20*Math.cos(a)).toFixed(1)} ${(25+20*Math.sin(a)).toFixed(1)}`)}
  return `<svg class="fsvg" width="${size}" height="${size}" viewBox="0 0 50 50" fill="none" stroke="${isDark()?"#2f3b36":"#8fa297"}" stroke-width="1.5"><path d="M${ring.join("L")}Z"/></svg>`;
 }
@@ -390,7 +424,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.18 \u00b7 20 Oct 2026";
+const VERSION="0.19 \u00b7 20 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -874,7 +908,7 @@ calendar(){
  let cells=["M","T","W","T","F","S","S"].map(d=>`<div class="dow">${d}</div>`).join("")+"<div></div>".repeat(off);
  for(let d=1;d<=n;d++){const ds=`${calMonth}-${String(d).padStart(2,"0")}`,e=S.entries[ds];
   const logged=e&&e.mood!=null;
-  cells+=`<div class="day ${ds===today()?"today":""} ${logged?"logged":""} ${S.memo[ds]?"placed":""}" data-d="${ds}">${logged?faceFor(ds,e.mood,34):blankFace(34)}<small>${d}</small>${e&&e.period?'<i class="pdot"></i>':""}</div>`}
+  cells+=`<div class="day ${ds===today()?"today":""} ${logged?"logged t"+tierOf(e.mood):""} ${S.memo[ds]?"placed":""}" data-d="${ds}" style="${logged?"--hc:"+fcol(ds,e.mood):""}">${logged?faceFor(ds,e.mood,34):blankFace(34)}<small>${d}</small>${e&&e.period?'<i class="pdot"></i>':""}</div>`}
  const mm=entryList().filter(([d])=>d.startsWith(calMonth)).map(([,e])=>e.mood);
  return `<h1>Calendar</h1><div class="card"><div class="row"><button class="link" id="prev">‹</button><span class="t">${first.toLocaleString("default",{month:"long",year:"numeric"})}</span><button class="link" id="next">›</button></div><br><div class="cal">${cells}</div>
  <p class="s" style="margin:12px 0 0">${mm.length?`Average ${avg(mm)}% · ${mm.length} days logged`:"No entries this month"}${Object.keys(S.entries).some(d=>d.startsWith(calMonth)&&S.entries[d].period)?' · <span style="color:var(--b)">●</span> period':""}</p></div>
