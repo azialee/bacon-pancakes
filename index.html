@@ -13,14 +13,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#d3ddd6;--card:#f3f7f4;--ink:#0e1914;--mute:#42524a;--line:#b0beb5;--g:#163f2c;--gs:#c6dfd0;--b:#a02f26;--bs:#efd6d1;--r:20px}
-[data-theme=dark]{--bg:#121816;--card:#1b2420;--ink:#e6eeea;--mute:#7f8d87;--line:#27332e;--g:#6fb596;--gs:#1f3a30;--b:#e08a80;--bs:#3a2421}
+:root{--bg:#f4f2ec;--card:#fff;--ink:#16211b;--mute:#5d6b63;--line:#dedad0;--g:#1d4a37;--gs:#dcebe1;--b:#a5483c;--bs:#f3dcd8;--r:20px;--chip:#f0eee8;--tile:#e8e3d7}
+[data-theme=dark]{--bg:#121816;--card:#1b2420;--ink:#e6eeea;--mute:#7f8d87;--line:#27332e;--g:#6fb596;--gs:#1f3a30;--b:#e08a80;--bs:#3a2421;--chip:#26312c;--tile:#2b2922}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);background:linear-gradient(180deg,var(--bg),color-mix(in srgb,var(--bg) 86%,var(--g)));background-attachment:fixed;min-height:100vh;color:var(--ink);font:500 15px/1.4 "Quicksand","Segoe UI",system-ui,sans-serif;padding-bottom:110px}
+body{margin:0;background:var(--bg);min-height:100vh;color:var(--ink);font:500 15px/1.4 "Quicksand","Segoe UI",system-ui,sans-serif;padding-bottom:110px}
 main{max-width:520px;margin:0 auto;padding:20px 16px}
 h1{font-size:20px;font-weight:600;margin:6px 0 14px;text-align:center}
 h2{font-size:13px;font-weight:600;margin:0 0 8px;color:var(--mute)}
-.card{background:var(--card);border-radius:30px 34px 28px 32px/32px 28px 34px 30px;padding:20px 22px;margin-bottom:14px;box-shadow:0 10px 26px -14px rgba(20,50,35,.42),0 0 0 1px rgba(22,63,44,.08)}
+.card{background:var(--card);border-radius:22px;padding:20px 22px;margin-bottom:14px;box-shadow:0 1px 2px rgba(40,60,50,.06),0 12px 26px -18px rgba(40,60,50,.28)}
 [data-theme=dark] .card{box-shadow:0 12px 30px -18px rgba(0,0,0,.7)}
 [data-theme=dark] .tg:not(.on){opacity:1;font-weight:500}
 .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -66,17 +66,25 @@ textarea{min-height:76px;resize:vertical}
 .sw2.on{border-color:var(--b)}.sw2.on::after{left:23px;background:var(--b)}
 /* tags */
 .gt{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:16px 0 6px}
-.tags{display:flex;flex-wrap:wrap;gap:2px 12px;margin-bottom:2px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
 .tmore{align-items:center;margin-top:2px}
-.tg{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:4px 0;font-size:13.5px;color:var(--mute);cursor:pointer;user-select:none;transition:color .15s}
-.tg i{width:16px;height:16px;border-radius:50%;border:1.3px solid currentColor;display:grid;place-items:center;font-style:normal;font-size:12px;line-height:1;transition:all .15s}
-.tg i::before{content:"+"}
-.tg.pos{color:var(--g)}.tg.neg{color:var(--b)}.tg.neu{color:var(--ink)}
-.tg:not(.on){opacity:1;font-weight:500}
-.tg.on{opacity:1;font-weight:600}
-.tg.on i{background:currentColor;transform:scale(1.1)}
-.tg.on i::before{content:"\2713";color:var(--card);font-size:10px}
-.tg.more{color:var(--mute);opacity:.8}
+.tg{display:inline-flex;align-items:center;background:var(--chip);border:0;border-radius:11px;padding:4px 9px;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;user-select:none;transition:background .15s,color .15s}
+.tg i{display:none}
+.tg.on{background:var(--ink);color:var(--card)}
+.tg.on.pos{background:var(--g)}.tg.on.neg{background:var(--b)}
+[data-theme=dark] .tg.on.pos{color:#10201a}[data-theme=dark] .tg.on.neg{color:#2a1210}
+.tg.more{background:none;color:var(--mute);padding-left:4px;padding-right:4px}
+/* basics tiles */
+.basics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.tl2{border-radius:20px;padding:14px 14px 13px;min-width:0;background:var(--tile)}
+.tl2 svg.ti{width:34px;height:34px;display:block;margin-bottom:8px;fill:none;stroke:var(--g);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tl2 .rl{font-size:16px;line-height:1.1}.tl2 .rc{font-size:12.5px;color:var(--mute);margin:3px 0 8px;min-height:17px}
+.tl2 .dots{gap:5px}
+.tl2 .rd,.tl2 .rd.on{width:15px;height:15px;transform:none;border:1.6px solid var(--g);background:none}
+.tl2 .rd.on{background:var(--g)}
+.ck{display:inline-flex;align-items:center;gap:8px;background:none;border:0;padding:0;cursor:pointer;font-weight:600;font-size:13px;color:var(--ink)}
+.ck b{width:22px;height:22px;border-radius:7px;border:1.8px solid var(--g);display:grid;place-items:center;transition:background .15s}
+.ck.on b{background:var(--g)}.ck.on b::before{content:"\2713";color:var(--card);font-size:13px;line-height:1}
 .add{display:flex;gap:10px;align-items:center;margin-top:8px;width:100%}
 .add input{flex:1;padding:6px 2px;border-radius:0;border-bottom:1px solid var(--line);background:none}
 .sw{width:20px;height:20px;border-radius:50%;border:2px solid transparent;cursor:pointer;flex:none}
@@ -92,10 +100,11 @@ textarea{min-height:76px;resize:vertical}
 .note:focus{border-bottom-color:var(--g)!important}
 .note::placeholder{color:var(--mute);font-style:italic;opacity:.8}
 /* keep button */
-.keep{display:flex;align-items:center;justify-content:center;gap:8px;margin:18px auto 6px;padding:13px 30px;background:none;color:var(--g);border:1.6px solid var(--g);border-radius:30px 34px 28px 36px/34px 28px 36px 30px;font-weight:500;letter-spacing:.03em;cursor:pointer;transition:transform .15s,background .25s,color .25s;touch-action:manipulation;-webkit-user-select:none;user-select:none;min-width:190px}
+.keep{display:flex;align-items:center;justify-content:center;gap:8px;margin:18px auto 6px;padding:13px 30px;background:var(--g);color:#fff;border:0;border-radius:24px;font-weight:600;letter-spacing:.02em;cursor:pointer;transition:transform .15s,background .25s,color .25s;touch-action:manipulation;-webkit-user-select:none;user-select:none;min-width:190px}
 .keep:active{transform:scale(.96)}
-.keep.kept{background:var(--g);color:var(--card);animation:pop .5s}
-.keep.kept svg{stroke:var(--card)}
+[data-theme=dark] .keep{color:#10201a}
+.keep.kept{background:var(--gs);color:var(--g);animation:pop .5s}
+.keep.kept svg{stroke:var(--g)}
 @keyframes pop{0%{transform:scale(.9)}50%{transform:scale(1.08) rotate(-2deg)}100%{transform:scale(1)}}
 /* christmas-light blink: colour is the day's colour, strength follows the mood */
 .lit{animation:twinkle .5s ease-in-out var(--blinks,2)}
@@ -168,7 +177,7 @@ ul.plain{padding-left:18px;margin:6px 0}
 .calbtn input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;border:0;padding:0;margin:0;background:none}
 .calbtn input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
 .sd{flex:none;width:48px;padding:6px 0 4px;border-radius:16px;border:1.5px solid transparent;background:none;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;color:var(--mute)}
-.sd.on{background:var(--card);border-color:var(--g);color:var(--ink)}
+.sd.on{background:var(--card);border-color:transparent;box-shadow:0 1px 2px rgba(40,60,50,.08),0 8px 16px -10px rgba(40,60,50,.3);color:var(--ink)}
 .sdw{font-size:10px;letter-spacing:.04em}.sdn{font-size:12px;font-weight:600}
 #toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,12px);background:var(--ink);color:var(--card);padding:10px 20px;border-radius:22px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:all .25s;z-index:70;white-space:nowrap}
 #toast.show{opacity:1;transform:translate(-50%,0)}
@@ -420,7 +429,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.23 \u00b7 20 Oct 2026";
+const VERSION="0.24 \u00b7 20 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -842,7 +851,17 @@ function bestHardHTML(){
   +'<p class="s" style="margin:10px 0 0">Only differences that look real are shown, and only on the side that makes sense. Feelings are left out because they are the mood, and so is your cycle, which isn\'t something you can change. Patterns, not proof of cause.</p>';
 }
 /* ---------- views ---------- */
-const rateRow=([k,label,hint])=>`<div class="rrow"><div><div class="rl">${label}</div><div class="rh">${hint}</div></div><div class="dots" data-k="${k}">${[1,2,3,4,5].map(n=>`<button class="rd ${(draft[k]||0)>=n?"on":""}" data-n="${n}" aria-label="${label} ${n}"></button>`).join("")}</div></div>`;
+const RCAP={sleep:["1–2 hrs","3–4 hrs","5–6 hrs","7–8 hrs","9+ hrs"],water:["Under 0.5 L","0.5–1 L","1–1.5 L","1.5–2 L","2 L+"],food:["Skipped most","1 meal","2 meals","3 meals","3 meals + snacks"]};
+const rcap=(k,v)=>v?RCAP[k][v-1]:"Tap to log";
+const TICON={
+ sleep:'<path d="M29 8a16 16 0 1 0 11 27A13 13 0 0 1 29 8z"/><path d="M38 9v6M35 12h6M12 10v4M10 12h4"/>',
+ water:'<path d="M13 8h22l-3 33H16z"/><path d="M15.5 24q4.5-3.5 8.5 0t8.5 0"/>',
+ food:'<ellipse cx="24" cy="29" rx="16" ry="7"/><ellipse cx="24" cy="29" rx="9" ry="3.6"/><path d="M12 6v9M15 6v9M18 6v9M15 15v9M34 6c-3 3-3 9 0 12v6"/>',
+ period:'<path d="M24 7c8 10 12 16 12 23a12 12 0 0 1-24 0c0-7 4-13 12-23z"/><path d="M18 31a6 6 0 0 0 5 5"/>'};
+const ticon=k=>`<svg class="ti" viewBox="0 0 48 48">${TICON[k]}</svg>`;
+const rateRow=([k,label])=>`<div class="tl2">${ticon(k)}<div class="rl">${label}</div><div class="rc" id="rc-${k}">${rcap(k,draft[k])}</div><div class="dots" data-k="${k}">${[1,2,3,4,5].map(n=>`<button class="rd ${(draft[k]||0)>=n?"on":""}" data-n="${n}" aria-label="${label} ${n}"></button>`).join("")}</div></div>`;
+function periodCap(){const ci=cycleInfo();if(draft.period)return "Today";if(!ci||ci.stale)return "Not today";return "Due ~"+niceDate(ci.next).replace(/,.*$/,"")}
+const periodTile=()=>`<div class="tl2">${ticon("period")}<div class="rl">Period</div><div class="rc" id="rc-period">${periodCap()}</div><button class="ck ${draft.period?"on":""}" id="per" role="switch" aria-checked="${draft.period}" aria-label="Period"><b></b>Period today</button></div>`;
 function addForm(){return `<div class="add"><input type="text" id="newtag" placeholder="your own word" maxlength="24"><span class="sw pos ${addType===G?"sel":""}" data-ty="pos"></span><span class="sw neg ${addType===B?"sel":""}" data-ty="neg"></span><span class="sw neu ${addType===N?"sel":""}" data-ty="neu"></span><button class="link" id="addok">add</button></div>`}
 // ---- moments: for each thing I did or that happened today, how it went and which feelings came with it ----
 function groupOfTag(n){return GROUPS.find(g=>groupTags(g).some(t=>t[0]===n))}
@@ -893,7 +912,7 @@ today(){
  <button class="sosbtn" id="sos">how am I?</button>
  <div class="card"><div class="moodhead"><div class="pct" id="pct" style="color:${fc};text-shadow:${numGlow(m,sel)}">${m}</div><div id="face">${faceFor(sel,m,56)}</div></div>
   <div class="lwrap" id="lwrap">${lineSVG(sel,m)}</div><div class="hint">slide along the line</div></div>
- <div class="card">${RATINGS.map(rateRow).join("")}${S.set.period!==false?`<div class="rrow"><div><div class="rl">Period</div><div class="rh">${cycleHint()}</div></div><button class="sw2 ${draft.period?"on":""}" id="per" role="switch" aria-checked="${draft.period}" aria-label="Period"></button></div>`:""}</div>
+ <div class="basics">${RATINGS.map(rateRow).join("")}${S.set.period!==false?periodTile():""}</div>
  ${tagsCard()}
  ${momentsCard()}
  <div class="card"><textarea id="note" class="note" rows="1" placeholder="a thought worth keeping…">${esc(draft.note)}</textarea></div>
@@ -979,8 +998,8 @@ function bind(){
    if(m!==draft.mood){draft.mood=m;updLine();touched()}};
   lw.onpointerup=lw.onpointercancel=()=>{sid=null;dragging=false};
   lw.tabIndex=0;lw.setAttribute("role","slider");
-  lw.onkeydown=ev=>{const d={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1}[ev.key];if(d){draft.mood=Math.max(0,Math.min(100,draft.mood+d*(ev.shiftKey?10:1)));updLine();touched();ev.preventDefault()}};  A.querySelectorAll(".dots").forEach(box=>box.querySelectorAll(".rd").forEach(b=>b.onclick=()=>{const k=box.dataset.k,n=+b.dataset.n;draft[k]=draft[k]===n?null:n;box.querySelectorAll(".rd").forEach(x=>x.classList.toggle("on",(draft[k]||0)>=+x.dataset.n));touched()}));
-  const per=$("#per");if(per)per.onclick=()=>{draft.period=!draft.period;per.classList.toggle("on",draft.period);per.setAttribute("aria-checked",draft.period);touched()};
+  lw.onkeydown=ev=>{const d={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1}[ev.key];if(d){draft.mood=Math.max(0,Math.min(100,draft.mood+d*(ev.shiftKey?10:1)));updLine();touched();ev.preventDefault()}};  A.querySelectorAll(".dots").forEach(box=>box.querySelectorAll(".rd").forEach(b=>b.onclick=()=>{const k=box.dataset.k,n=+b.dataset.n;draft[k]=draft[k]===n?null:n;box.querySelectorAll(".rd").forEach(x=>x.classList.toggle("on",(draft[k]||0)>=+x.dataset.n));$("#rc-"+k).textContent=rcap(k,draft[k]);touched()}));
+  const per=$("#per");if(per)per.onclick=()=>{draft.period=!draft.period;per.classList.toggle("on",draft.period);per.setAttribute("aria-checked",draft.period);$("#rc-period").textContent=periodCap();touched()};
   const note=$("#note"),grow=()=>{note.style.height="auto";note.style.height=note.scrollHeight+"px"};
   note.oninput=e=>{draft.note=e.target.value;grow();touched()};grow();
   A.querySelectorAll(".tg[data-tag]").forEach(t=>t.onclick=()=>{const n=t.dataset.tag,i=draft.tags.indexOf(n);i<0?draft.tags.push(n):draft.tags.splice(i,1);t.classList.toggle("on");touched()});
