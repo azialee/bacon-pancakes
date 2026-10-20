@@ -340,14 +340,20 @@ const ANIMALS=[
  {n:"penguin",h:[25,28,14,15],p:[{e:[25,34,9,8]},{l:[[23,32],[27,32],[25,35]],c:1}],eyes:[20,30,26],mouth:[25,39.5,3.5]},
  {n:"koala",h:[25,29,12.5,12],p:[{e:[10,16,6.5,6]},{e:[40,16,6.5,6]},{e:[10,16,3.2,3]},{e:[40,16,3.2,3]},{e:[25,31.5,3.2,4.2]}],eyes:[19,31,26],mouth:[25,38.5,4]},
  {n:"hedgehog",h:[25,33,11,9.5],p:[{l:[[9,28],[6,20],[12,23],[12,13],[18,19],[21,8],[25,17],[30,9],[32,18],[38,12],[38,22],[44,19],[41,28]]},{e:[25,35,2,1.5]}],eyes:[20,30,31],mouth:[25,39.5,3.5]},
- {n:"chick",h:[25,29,14,14],p:[{l:[[21,16],[23,10],[25,15],[28,9],[29,16]]},{l:[[23.5,32],[26.5,32],[25,34.2]],c:1}],eyes:[19.5,30.5,28],mouth:[25,38.2,3.5]},
- {n:"deer",h:[25,32,11.5,11],p:[{l:[[17,22],[13,12],[10,14]]},{l:[[13,12],[14,6]]},{l:[[33,22],[37,12],[40,14]]},{l:[[37,12],[36,6]]},{e:[11,25,3.5,5.5]},{e:[39,25,3.5,5.5]},{e:[25,37,3,2.2]}],eyes:[20,30,31],mouth:[25,40.5,3.5]}
+ {n:"chick",h:[25,30,14,13.5],p:[{l:[[21.5,31.5],[28.5,31.5],[25,36.5]],c:1},{l:[[22.8,33.6],[27.2,33.6]]},{e:[10.5,36,3.4,5]},{e:[39.5,36,3.4,5]}],eyes:[18,32,27.5],mouth:[25,40.8,3]},
+ {n:"deer",h:[25,32,11.5,11],p:[{l:[[17,22],[13,12],[10,14]]},{l:[[13,12],[14,6]]},{l:[[33,22],[37,12],[40,14]]},{l:[[37,12],[36,6]]},{e:[11,25,3.5,5.5]},{e:[39,25,3.5,5.5]},{e:[25,37,3,2.2]}],eyes:[20,30,31],mouth:[25,40.5,3.5]},
+ {n:"llama",h:[25,30,10,13],p:[{e:[18.5,11,2.6,7]},{e:[31.5,11,2.6,7]},{l:[[20,18],[25,14],[30,18]]},{e:[25,37.5,5.2,3.6]}],eyes:[21,31,29],mouth:[25,41.4,3]},
+ {n:"pigeon",h:[25,29,12.5,12.5],p:[{l:[[22,17],[25,12],[28,17]]},{l:[[23.5,30.5],[26.5,30.5],[25,34]],c:1},{l:[[13,38],[19,43],[31,43],[37,38]]}],eyes:[19.5,30.5,26.5],mouth:[25,38.2,3]},
+ {n:"lion",h:[25,30,10.5,10],p:[{e:[25,29,17,15.5]},{e:[12,16,3.6,3.6]},{e:[38,16,3.6,3.6]},{e:[25,34,3.8,2.8]},{l:[[23.5,32.2],[26.5,32.2],[25,33.8]],c:1}],eyes:[20.5,29.5,28],mouth:[25,38.4,3.2]},
+ {n:"squirrel",h:[25,31,11,10.5],p:[{l:[[15,24],[14,15],[21,21]],c:1},{l:[[35,24],[36,15],[29,21]],c:1},{e:[42,22,5,11.5]},{l:[[23.5,33.2],[26.5,33.2],[25,34.8]],c:1}],eyes:[20,30,30],mouth:[25,38.6,3.5]},
+ {n:"raccoon",h:[25,30,15,12],p:[{l:[[12,22],[11,10],[21,18]],c:1},{l:[[38,22],[39,10],[29,18]],c:1},{e:[18.5,29,5,4]},{e:[31.5,29,5,4]},{e:[25,35,2.2,1.6]}],eyes:[18.5,31.5,29],mouth:[25,39.2,4]},
+ {n:"goat",h:[25,31,10,12],p:[{l:[[19,21],[16,11],[20,6]]},{l:[[31,21],[34,11],[30,6]]},{e:[13,27,4,2.2]},{e:[37,27,4,2.2]},{e:[25,37.5,4.5,3.2]},{l:[[23,43],[25,48],[27,43]]}],eyes:[20.5,29.5,28],mouth:[25,40.8,3]}
 ];
-const SHUF=[5,12,0,9,14,3,7,11,2,15,6,1,10,4,13,8];
+const SHUF=[9,19,3,14,21,0,16,7,11,20,2,17,8,5,13,4,18,1,12,6,15,10];
 function animalFor(date){
  const dn=Math.floor(Date.parse(String(date).slice(0,10)+"T00:00:00Z")/864e5);
  const i=isNaN(dn)?hashStr(String(date)):dn;
- return ANIMALS[SHUF[((i*5)%16+16)%16]]; // step of 5 through a shuffled list: neighbouring days never repeat
+ return ANIMALS[SHUF[((i*5)%SHUF.length+SHUF.length)%SHUF.length]]; // step of 5 through a shuffled list: neighbouring days never repeat
 }
 const glowFor=m=>{const t=m/100;return t>.5?Math.pow(t,3)*8:0};
 function faceFor(date,m,size=40){
@@ -411,7 +417,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.20 \u00b7 20 Oct 2026";
+const VERSION="0.21 \u00b7 20 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
