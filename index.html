@@ -220,7 +220,7 @@ setTimeout(function(){if(!window.__easeOk){errs.push("the app did not start. Bro
 const G="pos",B="neg",N="neu";
 // Tags are extra info for tracking. Sleep, water, meals and period are tracked separately above them.
 const GROUPS=[
- {name:"Feelings",role:"feel",tags:[["Happy",G],["Calm",G],["Thankful",G],["Loved",G],["Relieved",G],["Excited",G],["Motivated",G],["Felt supported",G],["Anxious",B],["Stressed",B],["Sad",B],["Lonely",B],["Irritated",B],["Angry",B],["Guilty",B],["Unsure of myself",B]]},
+ {name:"Feelings",role:"feel",tags:[["Happy",G],["Calm",G],["Thankful",G],["Loved",G],["Relieved",G],["Excited",G],["Motivated",G],["Felt supported",G],["Anxious",B],["Stressed",B],["Sad",B],["Lonely",B],["Irritable",B],["Guilty",B],["Unsure of myself",B]]},
  {name:"Energy & body",role:"body",tags:[["Tired",B],["Woke up tired",B],["Overslept",B],["Ovulation",B],["Injury",B],["Headache",B],["Hungry",B]]},
  {name:"Mind & focus",role:"feel",tags:[]},
  {name:"Activities",role:"do",tags:[["Exercise",G],["Outdoors",G],["Reading",G],["Hobby",G],["Cooking",G],["Shopping",G],["Nap",G],["Watching shows",G],["Alone time",G],["Work",N],["Overtime",B],["Chores",N]]},
@@ -250,7 +250,10 @@ const THEMES=[
  ["Good moments",/\b(happy|grateful|proud|excited|fun|relieved|laugh\w*|enjoy\w*|good day)\b/i]
 ];
 // a theme found in a note or chat counts as the tag it matches; themes with no matching tag keep their own name
-const THEME_TAG={"Feeling not effective or good enough":"Unsure of myself","Being hard on yourself":"Guilty","Feeling overwhelmed or drained":"Stressed","Pressure at work":"Work pressure","Family tension":"Family conflict","Tension with someone close":"Partner conflict","Anxiety or panic":"Anxious","Low mood":"Sad","Feeling alone":"Lonely","Frustration or anger":"Angry","Grief or loss":"Loss or death","Sleep trouble":"Poor sleep","Money worries":"Money worry","Good moments":"Happy"};
+const ALIAS={"Irritated":"Irritable","Angry":"Irritable"};
+const canon=n=>ALIAS[n]||n;
+const uniq=a=>a.filter((x,i)=>a.indexOf(x)===i);
+const THEME_TAG={"Feeling not effective or good enough":"Unsure of myself","Being hard on yourself":"Guilty","Feeling overwhelmed or drained":"Stressed","Pressure at work":"Work pressure","Family tension":"Family conflict","Tension with someone close":"Partner conflict","Anxiety or panic":"Anxious","Low mood":"Sad","Feeling alone":"Lonely","Frustration or anger":"Irritable","Grief or loss":"Loss or death","Sleep trouble":"Poor sleep","Money worries":"Money worry","Good moments":"Happy"};
 const themeName=k=>THEME_TAG[k]||k;
 const ICON={
  today:'<path d="M3 8h15v8H3zM18 11h2v2h-2z"/><path d="M6 11v2"/>',
@@ -350,7 +353,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.15 \u00b7 20 Oct 2026";
+const VERSION="0.16 \u00b7 20 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -406,7 +409,7 @@ function outcomeSet(){
 }
 // everything about a day as a list of names: tags + ratings-derived facts + themes found in the note
 function namesOf(e){
- const n=[...(e.tags||[])];
+ const n=uniq((e.tags||[]).map(canon));
  if(e.period)n.push("Period");
  if(e.sleep!=null)e.sleep<=2?n.push("Poor sleep"):e.sleep>=4&&n.push("Good sleep");
  if(e.water!=null)e.water<=2?n.push("Low water"):e.water>=4&&n.push("Enough water");
@@ -420,7 +423,7 @@ function autoChatTags(c){
  const out=[];Object.entries(c.themes||{}).sort((a,b)=>b[1].length-a[1].length).slice(0,3).forEach(x=>{const n=themeName(x[0]);if(out.indexOf(n)<0)out.push(n)});
  return out;
 }
-const chatTagsOf=c=>Array.isArray(c.tags)?c.tags:autoChatTags(c);
+const chatTagsOf=c=>uniq((Array.isArray(c.tags)?c.tags:autoChatTags(c)).map(canon));
 function chatMap(){
  if(CTC&&CTC.v===DATAV)return CTC.m;
  const m={};
@@ -436,7 +439,7 @@ function tagList(g){
  return groupTags(g).filter(t=>!hid.has(t[0])).map((t,i)=>({t,i})).sort((a,b)=>(use?((use[b.t[0]]||0)-(use[a.t[0]]||0)):0)||idx(a.t[0])-idx(b.t[0])||a.i-b.i).map(x=>x.t);
 }const byColor=L=>[L.filter(t=>t[1]===G),L.filter(t=>t[1]===B),L.filter(t=>t[1]!==G&&t[1]!==B)];
 let TU=null;
-function tagUse(){if(TU&&TU.v===DATAV)return TU.u;const u={};Object.values(S.entries).forEach(e=>(e.tags||[]).forEach(n=>u[n]=(u[n]||0)+1));TU={v:DATAV,u:u};return u}
+function tagUse(){if(TU&&TU.v===DATAV)return TU.u;const u={};Object.values(S.entries).forEach(e=>uniq((e.tags||[]).map(canon)).forEach(n=>u[n]=(u[n]||0)+1));TU={v:DATAV,u:u};return u}
 function moveTag(gname,name,dir){
  const g=GROUPS.find(x=>x.name===gname),L=tagList(g),names=L.map(t=>t[0]),me=L.find(t=>t[0]===name);if(!me)return;
  const same=L.filter(t=>t[1]===me[1]).map(t=>t[0]),i=same.indexOf(name),j=i+dir;if(j<0||j>=same.length)return;
@@ -697,7 +700,7 @@ function tagsCard(){
 }
 const views={
 today(){
- if(!drafts[sel]){const e=S.entries[sel]||{};drafts[sel]={date:sel,mood:e.mood??50,tags:[...(e.tags||[])],note:e.note||"",sleep:e.sleep??null,water:e.water??null,food:e.food??null,period:!!e.period}}
+ if(!drafts[sel]){const e=S.entries[sel]||{};drafts[sel]={date:sel,mood:e.mood??50,tags:uniq((e.tags||[]).map(canon)),note:e.note||"",sleep:e.sleep??null,water:e.water??null,food:e.food??null,period:!!e.period}}
  draft=drafts[sel];
  const m=draft.mood,fc=fcol(sel,m);
  return `${dateStrip()}${sel===today()?"":`<div class="s" style="text-align:center;margin:-2px 0 8px">logging for ${niceDate(sel)}</div>`}
