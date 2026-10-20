@@ -71,8 +71,10 @@ textarea{min-height:76px;resize:vertical}
 .tmore{align-items:center;margin-top:2px}
 .tg{display:inline-flex;align-items:center;background:var(--chip);border:0;border-radius:11px;padding:4px 9px;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;user-select:none;transition:background .15s,color .15s}
 .tg i{display:none}
+.tg.pos{background:var(--gs);color:var(--g)}.tg.neg{background:var(--bs);color:var(--b)}
 .tg.on{background:var(--ink);color:var(--card)}
-.tg.on.pos{background:var(--gs);color:var(--g);font-weight:600}.tg.on.neg{background:var(--bs);color:var(--b);font-weight:600}
+.tg.on.pos{background:var(--g);color:#fff;font-weight:600}.tg.on.neg{background:var(--b);color:#fff;font-weight:600}
+[data-theme=dark] .tg.on.pos{color:#10201a}[data-theme=dark] .tg.on.neg{color:#2a1210}
 .tg.more{background:none;color:var(--mute);padding-left:4px;padding-right:4px}
 /* basics tiles */
 .basics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
@@ -880,8 +882,9 @@ function momentRow(n){
   <div class="mf">${(m.f||[]).map(f=>`<button class="cchip ${typeOf(f)||N}" data-mfrm="${esc(n)}" data-f="${esc(f)}">${esc(f)} <b>\u2715</b></button>`).join("")}<button class="link sm" data-mfadd="${esc(n)}">${openMoment===n?"done":"+ feeling"}</button></div>
   ${openMoment===n?`<div class="cpick">${feelingChoices(m.f||[]).map(([f,ty])=>`<button class="tg ${ty}" data-mfpick="${esc(n)}" data-f="${esc(f)}"><i></i>${esc(f)}</button>`).join("")}</div>`:""}</div>`;
 }
+const momList=()=>draft.tags.filter(n=>{const g=groupOfTag(n);return g&&g.role==="do"&&typeOf(n)===G});
 function momentsCard(){
- const list=draft.tags.filter(n=>{const g=groupOfTag(n);return g&&g.role==="do"&&typeOf(n)===G});
+ const list=momList();
  if(!list.length)return "";
  return `<div class="card"><div class="t">How did it go?</div><p class="s" style="margin:2px 0 4px">For the good things you did today. Optional, and it's how the app learns what actually helps you.</p>${list.map(momentRow).join("")}</div>`;
 }function tagsCard(){
@@ -1001,7 +1004,7 @@ function bind(){
   const per=$("#per");if(per)per.onclick=()=>{draft.period=!draft.period;per.classList.toggle("on",draft.period);per.setAttribute("aria-checked",draft.period);$("#rc-period").textContent=periodCap();touched()};
   const note=$("#note"),grow=()=>{note.style.height="auto";note.style.height=note.scrollHeight+"px"};
   note.oninput=e=>{draft.note=e.target.value;grow();touched()};grow();
-  A.querySelectorAll(".tg[data-tag]").forEach(t=>t.onclick=()=>{const n=t.dataset.tag,i=draft.tags.indexOf(n);i<0?draft.tags.push(n):draft.tags.splice(i,1);t.classList.toggle("on");touched()});
+  A.querySelectorAll(".tg[data-tag]").forEach(t=>t.onclick=()=>{const n=t.dataset.tag,i=draft.tags.indexOf(n),was=momList().join("|");i<0?draft.tags.push(n):draft.tags.splice(i,1);t.classList.toggle("on");touched();if(momList().join("|")!==was){const y=window.scrollY;render();window.scrollTo(0,y)}});
   A.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{addingIn=b.dataset.add;render();$("#newtag").focus()});
   A.querySelectorAll(".sw").forEach(s=>s.onclick=()=>{addType=s.dataset.ty;A.querySelectorAll(".sw").forEach(x=>x.classList.toggle("sel",x===s))});
   A.querySelectorAll("[data-exp]").forEach(b=>b.onclick=()=>{const g=b.dataset.exp;expG.has(g)?expG.delete(g):expG.add(g);render()});
