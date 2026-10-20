@@ -71,10 +71,11 @@ textarea{min-height:76px;resize:vertical}
 .tmore{align-items:center;margin-top:2px}
 .tg{display:inline-flex;align-items:center;background:var(--chip);border:0;border-radius:11px;padding:4px 9px;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;user-select:none;transition:background .15s,color .15s}
 .tg i{display:none}
-.tg.pos{background:var(--gs);color:var(--g)}.tg.neg{background:var(--bs);color:var(--b)}
-.tg.on{background:var(--ink);color:var(--card)}
-.tg.on.pos{background:var(--g);color:#fff;font-weight:600}.tg.on.neg{background:var(--b);color:#fff;font-weight:600}
-[data-theme=dark] .tg.on.pos{color:#10201a}[data-theme=dark] .tg.on.neg{color:#2a1210}
+.tg.pos{background:color-mix(in srgb,var(--g) 8%,var(--card));color:color-mix(in srgb,var(--g) 80%,var(--ink))}
+.tg.neg{background:color-mix(in srgb,var(--b) 8%,var(--card));color:color-mix(in srgb,var(--b) 85%,var(--ink))}
+.tg.on{background:color-mix(in srgb,var(--ink) 14%,var(--card));color:var(--ink);font-weight:600}
+.tg.on.pos{background:color-mix(in srgb,var(--g) 24%,var(--card));color:var(--g)}
+.tg.on.neg{background:color-mix(in srgb,var(--b) 22%,var(--card));color:var(--b)}
 .tg.more{background:none;color:var(--mute);padding-left:4px;padding-right:4px}
 /* basics tiles */
 .basics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
