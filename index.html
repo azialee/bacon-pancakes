@@ -859,7 +859,7 @@ const TICON={
  period:'<path d="M24 7c8 10 12 16 12 23a12 12 0 0 1-24 0c0-7 4-13 12-23z"/><path d="M18 31a6 6 0 0 0 5 5"/>'};
 const ticon=k=>`<svg class="ti" viewBox="0 0 48 48">${TICON[k]}</svg>`;
 const rateRow=([k,label])=>`<div class="tl2">${ticon(k)}<div class="rl">${label}</div><div class="dots" data-k="${k}">${[1,2,3,4,5].map(n=>`<button class="rd ${(draft[k]||0)>=n?"on":""}" data-n="${n}" aria-label="${label} ${n}"></button>`).join("")}</div><div class="rc" id="rc-${k}">${rcap(k,draft[k])}</div></div>`;
-function periodCap(){const ci=cycleInfo();if(draft.period)return "Today";if(!ci||ci.stale)return "Not today";return "Due ~"+niceDate(ci.next).replace(/,.*$/,"")}
+function periodCap(){const ci=cycleInfo();if(draft.period)return "Today";if(!ci||ci.stale)return "Not today";return "Due "+niceDate(ci.next).replace(/^[^,]*,\s*/,"")}
 const periodTile=()=>`<div class="tl2">${ticon("period")}<div class="rl">Period</div><button class="ck ${draft.period?"on":""}" id="per" role="switch" aria-checked="${draft.period}" aria-label="Period today"><b></b></button><div class="rc" id="rc-period">${periodCap()}</div></div>`;
 function addForm(){return `<div class="add"><input type="text" id="newtag" placeholder="your own word" maxlength="24"><span class="sw pos ${addType===G?"sel":""}" data-ty="pos"></span><span class="sw neg ${addType===B?"sel":""}" data-ty="neg"></span><span class="sw neu ${addType===N?"sel":""}" data-ty="neu"></span><button class="link" id="addok">add</button></div>`}
 // ---- moments: for each thing I did or that happened today, how it went and which feelings came with it ----
