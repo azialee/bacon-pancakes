@@ -225,7 +225,17 @@ details.dr summary span{color:var(--mute)}
 details.dr p{margin:6px 0 0 114px;font-size:13.5px;color:var(--mute);line-height:1.5}
 .rsub{font-size:17px;margin-top:2px}
 .pill.pos{background:var(--gs)}.pill.neg{background:var(--bs)}
-.rhead{text-align:center;margin-bottom:6px}/* nav */
+.rhead{text-align:center;margin-bottom:6px}.sumtop{display:flex;gap:18px;align-items:center;margin:4px 0 12px}
+.avgbox{flex:none}
+.bigavg{font-size:44px;font-weight:400;line-height:1;letter-spacing:-.5px}
+.delta{font-size:13px;font-weight:600;margin-top:4px}
+.delta.up,.mini i.up{color:var(--g)}.delta.dn,.mini i.dn{color:var(--b)}.delta.fl{color:var(--mute);font-weight:500}
+.minis{flex:1;min-width:0}
+.mini{display:flex;align-items:baseline;gap:8px;padding:2px 0;font-size:14px}
+.mini span{color:var(--mute);width:48px}
+.mini b{font-size:16px}
+.mini i{font-style:normal;font-size:12px;font-weight:600}
+.wr{margin:0 0 10px;line-height:1.55}/* nav */
 nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));background:var(--card);border-radius:30px;display:flex;gap:4px;padding:6px;box-shadow:0 4px 20px #0000001a}
 nav button{width:46px;height:46px;border-radius:50%;border:0;background:none;color:var(--mute);display:grid;place-items:center;cursor:pointer}
 nav button.on{background:var(--g);color:#fff}[data-theme=dark] nav button.on{color:#10201a}
@@ -380,7 +390,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.17 \u00b7 20 Oct 2026";
+const VERSION="0.18 \u00b7 20 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -477,7 +487,7 @@ function restoreTag(name){S.set.hidden=S.set.hidden.filter(n=>n!==name);save();r
 
 /* ---------- state ---------- */
 let view="today",sel=today(),calMonth=today().slice(0,7),range="WTD",filterTag="",draft=null,drafts={},addingIn=null,addType=G,showFilter=false,chatStep=null;
-let howDays=7,howMore=false,openMoment=null,addChatTag=null,editTags=false,expG=new Set(),tlAll={neg:false,pos:false},memoSel=null,corrMode="same";
+let howDays=5,howMore=false,openMoment=null,addChatTag=null,editTags=false,expG=new Set(),tlAll={neg:false,pos:false},memoSel=null,corrMode="same";
 const niceDate=d=>new Date(d+"T12:00").toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
 function toast(msg){let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";document.body.appendChild(t)}
  t.textContent=msg;t.classList.add("show");clearTimeout(window.__tt);window.__tt=setTimeout(()=>t.classList.remove("show"),2200)}
@@ -635,8 +645,8 @@ function recap(){
  if(has("Family conflict"))life.push("family conflict");
  if(life.length)dr("Stress load",list(life),"That keeps stress hormones up, and you recover slower when sleep, water or food are low.");
  const th=topThemes()[0];if(th)dr("On your mind",esc(th[0].toLowerCase()),"From your notes and chats in the last two weeks.");
- const shown=howMore?D:D.slice(0,3);
- html+=`<div class="sech">WHAT'S SHAPING IT</div>`+(D.length?shown.map(x=>`<details class="dr"><summary><b>${esc(x.k)}</b><span>${x.s}</span></summary><p>${x.w}</p></details>`).join("")+(D.length>3?`<button class="link sm" id="hmore">${howMore?"show fewer":"show "+(D.length-3)+" more"}</button>`:"")+(D.length>1?`<p class="s" style="margin:6px 0 0">Tap one to see why it matters.</p>`:""):(a!=null&&a>=65?`<p class="s">Nothing obvious is pulling you down right now.</p>`:`<p class="s">Nothing obvious in the logs yet. Log sleep, water and meals and patterns show up fast.</p>`));
+ const shown=howMore?D:D.slice(0,4);
+ html+=`<div class="sech">WHAT'S SHAPING IT</div>`+(D.length?shown.map(x=>`<div class="dr"><b>${esc(x.k)}</b><span>${x.s}. ${x.w}</span></div>`).join("")+(D.length>4?`<button class="link sm" id="hmore">${howMore?"show fewer":"show "+(D.length-4)+" more"}</button>`:""):(a!=null&&a>=65?`<p class="s">Nothing obvious is pulling you down right now.</p>`:`<p class="s">Nothing obvious in the logs yet. Log sleep, water and meals and patterns show up fast.</p>`));
  // what helps: moments first (how it actually left you), then the day-level lifts
  const H=[],ms=momentStats();
  Object.keys(ms).forEach(n=>{const s=ms[n];if(s.n>=3&&s.b/s.n>=.6&&s.b>s.w)H.push({n:n,rt:`${s.b} of ${s.n}`,sub:"left you better",w:Math.round(s.b/s.n*100),key:100+s.b/s.n})});
@@ -666,42 +676,89 @@ function recap(){
  W.sort((x,y)=>y[2]-x[2]);
  html+=`<div class="sech">QUICK WINS</div>`+(W.length?`<ol class="qw">${W.slice(0,3).map(w=>`<li><b>${esc(w[0])}</b><span>${w[1]}</span></li>`).join("")}</ol>`:`<p class="s">Nothing urgent stands out. Keep doing the things that help.</p>`);
  return html;
-}const stdev=a=>{const m=a.reduce((x,y)=>x+y,0)/a.length;return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/a.length)};
+}const CYCLE=["Period","Ovulation"];
+const cap=s=>String(s).replace(/^./,c=>c.toUpperCase());
+// how much each thing moves mood (days with it vs without); small samples are pulled toward zero
+function effectsOf(list){
+ const fs=outcomeSet(),days=list.map(([d,e])=>({m:e.mood,n:dayNames(d)})),all={},eff=[];
+ days.forEach(z=>z.n.forEach(n=>{if(!fs.has(n)&&CYCLE.indexOf(n)<0)all[n]=(all[n]||0)+1}));
+ Object.keys(all).forEach(n=>{
+  const w=days.filter(z=>z.n.indexOf(n)>=0).map(z=>z.m),o=days.filter(z=>z.n.indexOf(n)<0).map(z=>z.m);
+  if(w.length>=3&&o.length>=3){const df=avg(w)-avg(o);eff.push({n:n,adj:df*w.length/(w.length+2),a:avg(w),o:avg(o),c:w.length,ty:typeOf(n)})}});
+ return eff;
+}
 function summaryFor(from,to,word){
  const ent=entryList().filter(([d])=>d>=from&&d<=to);
  if(!ent.length)return '<p class="s" style="margin:0">Nothing logged in this stretch yet.</p>';
  const len=daysBetween(from,to)+1,pFrom=addDays(from,-len),pTo=addDays(from,-1);
- const cur=ent.map(([,e])=>e.mood),prevEnt=entryList().filter(([d])=>d>=pFrom&&d<=pTo),prev=prevEnt.map(([,e])=>e.mood);
- const a=avg(cur),pa=prev.length?avg(prev):null,dd=pa==null?null:a-pa,hi=Math.max(...cur),lo=Math.min(...cur);
- const sd=cur.length>=4?stdev(cur):null,steady=sd==null?"\u2014":sd<8?"steady":sd<15?"up & down":"swingy";
- const tone=a>=70?"A good":a>=58?"A decent":a>=45?"A mixed":a>=30?"A bad":"A really hard";
+ const prevEnt=entryList().filter(([d])=>d>=pFrom&&d<=pTo),cur=ent.map(([,e])=>e.mood),prev=prevEnt.map(([,e])=>e.mood);
+ const a=avg(cur),pa=prev.length?avg(prev):null,dd=pa==null?null:a-pa;
  const rt=(k,list)=>{const v=list.map(([,e])=>e[k]).filter(x=>x!=null);return v.length?v.reduce((x,y)=>x+y,0)/v.length:null};
- const tile=(v,l)=>'<div class="tile"><b>'+v+'</b><span>'+l+'</span></div>';
- const rtile=(k,l)=>{const c=rt(k,ent),p=rt(k,prevEnt);if(c==null)return tile("\u2014",l);const ch=p==null?"":(Math.abs(c-p)<.2?"":(c>p?" \u25b2":" \u25bc"));return tile(c.toFixed(1)+ch,l)};
- let low=0,run=0;ent.forEach(([d],i)=>{if(ent[i][1].mood<45){run=(i>0&&daysBetween(ent[i-1][0],d)===1&&ent[i-1][1].mood<45)?run+1:1;if(run>low)low=run}else run=0});
- let s=tone+" "+word+". Averaging around <b>"+a+"%</b>"+(dd==null?"":Math.abs(dd)<5?", about the same as last "+word:(dd>0?", up "+dd+" on last "+word:", down "+(-dd)+" from last "+word))+".";
- if(low>=3)s+=" Your longest low stretch was "+low+" days in a row.";
- // counts
- const fs=outcomeSet(),fl=new Set(feelingNames().concat(["Tired"])),fc={},gc={},sc={};
- ent.forEach(([d,e])=>{dayNames(d).forEach(n=>{if(fl.has(n))fc[n]=(fc[n]||0)+1});
-  uniq((e.tags||[]).map(canon)).filter(n=>typeOf(n)===G&&!fs.has(n)&&!HABITS.includes(n)).forEach(n=>gc[n]=(gc[n]||0)+1);
-  stressNames(e,d).forEach(n=>sc[n]=(sc[n]||0)+1)});
- const top=(o,k)=>Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,k).map(x=>esc(x[0])+" \u00d7"+x[1]).join(", ");
- const line=(l,v)=>v?'<div class="sline"><b>'+l+'</b><span>'+v+'</span></div>':"";
- // weekday pattern needs a few weeks of data
- let wd="";
- if(ent.length>=14){const by={};ent.forEach(([d,e])=>{const k=new Date(d+"T12:00").getDay();(by[k]=by[k]||[]).push(e.mood)});
-  const rows=Object.keys(by).filter(k=>by[k].length>=2).map(k=>({k:+k,m:avg(by[k])}));
-  if(rows.length>=5){rows.sort((x,y)=>y.m-x.m);const nm=["Sundays","Mondays","Tuesdays","Wednesdays","Thursdays","Fridays","Saturdays"];if(rows[0].m-rows[rows.length-1].m>=8)wd=nm[rows[0].k]+" run highest ("+rows[0].m+"%), "+nm[rows[rows.length-1].k]+" lowest ("+rows[rows.length-1].m+"%)"}}
+ const seed=hashStr(from+to);
+ // ---- dashboard: average with a small red/green change, then the three basics ----
+ const delta=dd==null?"":'<div class="delta '+(Math.abs(dd)<2?"fl":dd>0?"up":"dn")+'">'+(Math.abs(dd)<2?"about the same as last "+word:(dd>0?"\u25b2 ":"\u25bc ")+Math.abs(dd)+"% vs last "+word)+'</div>';
+ const mini=(k,l)=>{const c=rt(k,ent),p=rt(k,prevEnt);if(c==null)return '<div class="mini"><span>'+l+'</span><b>\u2014</b></div>';
+  const d=p==null?0:c-p;return '<div class="mini"><span>'+l+'</span><b>'+c.toFixed(1)+'</b>'+(Math.abs(d)>=.2?'<i class="'+(d>0?"up":"dn")+'">'+(d>0?"\u25b2 ":"\u25bc ")+Math.abs(d).toFixed(1)+'</i>':'')+'</div>'};
+ const top='<div class="sumtop"><div class="avgbox"><div class="bigavg">'+a+'%</div><div class="s">average</div>'+delta+'</div><div class="minis">'+mini("sleep","Sleep")+mini("water","Water")+mini("food","Meals")+'<div class="s" style="font-size:11.5px">out of 5</div></div></div>';
+ // ---- write-up: built from what actually moved this stretch ----
+ const P=[];
+ const tone=a>=70?"A good":a>=58?"A decent":a>=45?"A mixed":a>=30?"A bad":"A really hard";
+ let p1=tone+" "+word+", averaging around <b>"+a+"%</b>"+(dd==null?"":Math.abs(dd)<5?", about level with last "+word:(dd>0?", up "+dd+" on last "+word:", down "+(-dd)+" from last "+word))+".";
+ if(ent.length>=6){const h2=Math.floor(ent.length/2),f1=avg(ent.slice(0,h2).map(x=>x[1].mood)),l1=avg(ent.slice(h2).map(x=>x[1].mood));
+  if(Math.abs(l1-f1)>=6)p1+=" It "+(l1>f1?"started lower and picked up":"started higher and slipped")+" through the "+word+" ("+f1+"% early on, "+l1+"% lately).";}
+ if(ent.length<4)p1+=" Only "+ent.length+" day"+(ent.length>1?"s":"")+" logged so far, so treat this as a first look.";
+ P.push(p1);
+ let eff=effectsOf(ent),scope=false;
+ if(!eff.some(x=>Math.abs(x.adj)>=5)){eff=effectsOf(entryList());scope=true}
+ const drags=eff.filter(x=>x.adj<=-5&&x.ty!==G).sort((x,y)=>x.adj-y.adj).slice(0,2),lifts=eff.filter(x=>x.adj>=5&&x.ty!==B).sort((x,y)=>y.adj-x.adj).slice(0,2);
+ const nm=x=>esc(x.n.toLowerCase());
+ let p2=scope&&(drags.length||lifts.length)?"Not much separates the days inside this "+word+" yet, so looking across everything you've logged: ":"";
+ if(drags.length){const d0=drags[0];
+  p2+=[ "The biggest drag was "+nm(d0)+": days with it averaged "+d0.a+"%, against "+d0.o+"% without.",
+        cap(nm(d0))+" weighed on you most. Those days averaged "+d0.a+"% compared with "+d0.o+"% on the days without it.",
+        "Looking at what separated the harder days, "+nm(d0)+" stands out ("+d0.a+"% with it, "+d0.o+"% without)." ][seed%3];
+  if(drags[1])p2+=" "+[cap(nm(drags[1]))+" pulled the same way ("+drags[1].a+"% vs "+drags[1].o+"%).",cap(nm(drags[1]))+" did too ("+drags[1].a+"% vs "+drags[1].o+"%).",cap(nm(drags[1]))+" shows a similar pattern ("+drags[1].a+"% vs "+drags[1].o+"%)."][seed%3];}
+ if(lifts.length){const l0=lifts[0];
+  p2+=(p2?" ":"")+[ "What lifted you most was "+nm(l0)+" ("+l0.a+"% with it, "+l0.o+"% without).",
+        "On the brighter side, "+nm(l0)+" went with your better days ("+l0.a+"% against "+l0.o+"%).",
+        cap(nm(l0))+" stands out as a lift: "+l0.a+"% on those days versus "+l0.o+"% without." ][(seed+1)%3];
+  if(lifts[1])p2+=" "+cap(nm(lifts[1]))+" helped in a similar way ("+lifts[1].a+"% vs "+lifts[1].o+"%).";}
+ if(p2)P.push(p2);
+ // basics and feelings
+ const sl=rt("sleep",ent),wa=rt("water",ent),fo=rt("food",ent),psl=rt("sleep",prevEnt),pwa=rt("water",prevEnt),pfo=rt("food",prevEnt);
+ const bas=[["sleep",sl,psl],["water",wa,pwa],["meals",fo,pfo]].filter(x=>x[1]!=null);
+ let p3="";
+ if(bas.length){const weak=bas.slice().sort((x,y)=>x[1]-y[1])[0];
+  if(weak[1]<3){p3+=cap(weak[0])+" was the weakest basic at "+weak[1].toFixed(1)+"/5"+(weak[2]!=null&&Math.abs(weak[1]-weak[2])>=.5?(weak[1]<weak[2]?", down ":", up ")+Math.abs(weak[1]-weak[2]).toFixed(1)+" on last "+word:"")+".";}
+  else if(bas.every(x=>x[1]>=3.5))p3+="Sleep, water and meals all held up ("+bas.map(x=>x[1].toFixed(1)).join(", ")+" out of 5).";}
+ const fl=new Set(feelingNames().concat(["Tired"])),fc={};
+ ent.forEach(([d])=>dayNames(d).forEach(n=>{if(fl.has(n))fc[n]=(fc[n]||0)+1}));
+ const fneg=Object.entries(fc).filter(x=>typeOf(x[0])===B).sort((x,y)=>y[1]-x[1]).slice(0,2),fpos=Object.entries(fc).filter(x=>typeOf(x[0])===G).sort((x,y)=>y[1]-x[1]).slice(0,1);
+ if(fneg.length||fpos.length)p3+=(p3?" ":"")+"Feelings leaned "+(fneg.length?"toward "+list(fneg.map(x=>esc(x[0].toLowerCase())+" ("+x[1]+" day"+(x[1]>1?"s":"")+")")):"positive")+(fpos.length?(fneg.length?", with ":", mostly ")+esc(fpos[0][0].toLowerCase())+" on "+fpos[0][1]+" day"+(fpos[0][1]>1?"s":""):"")+".";
+ if(p3)P.push(p3);
+ // cycle, weekdays and the moments you logged
+ let p4="";
+ const ci=cycleInfo();
  const per=ent.filter(([,e])=>e.period).map(([,e])=>e.mood),np=ent.filter(([,e])=>!e.period).map(([,e])=>e.mood);
- const cy=per.length>=2&&np.length>=3?"Period days average "+avg(per)+"% against "+avg(np)+"% on other days":"";
- return '<p style="margin:0;line-height:1.55">'+s+'</p>'
-  +'<div class="tiles">'+tile(a+"%","average")+tile(dd==null?"\u2014":(dd>0?"+":"")+dd,"vs last "+word)+tile(cur.length,"days logged")
-  +tile(hi+"%","best day")+tile(lo+"%","toughest")+tile(steady,"steadiness")
-  +rtile("sleep","sleep /5")+rtile("water","water /5")+rtile("food","meals /5")+'</div>'
-  +line("Felt most",top(fc,3))+line("Did most",top(gc,3))+line("Weighed on you",top(sc,3))+line("Weekdays",wd)+line("Cycle",cy);
-}
-// ---- how each thing I logged moments for left me ----
+ if(per.length>=2&&np.length>=3&&Math.abs(avg(per)-avg(np))>=5)p4+="Your period days averaged "+avg(per)+"% against "+avg(np)+"% on the other days.";
+ if(ci){const pre=ent.filter(([d,e])=>!e.period&&ci.starts.some(s=>{const k=daysBetween(d,s);return k>=1&&k<=7})).map(([,e])=>e.mood),oth=ent.filter(([d,e])=>!e.period&&!ci.starts.some(s=>{const k=daysBetween(d,s);return k>=1&&k<=7})).map(([,e])=>e.mood);
+  if(pre.length>=3&&oth.length>=3&&Math.abs(avg(pre)-avg(oth))>=5)p4+=(p4?" ":"")+"The week before a period ran "+(avg(pre)<avg(oth)?"lower":"higher")+" ("+avg(pre)+"% against "+avg(oth)+"%).";}
+ if(ent.length>=14){const by={};ent.forEach(([d,e])=>{const k=new Date(d+"T12:00").getDay();(by[k]=by[k]||[]).push(e.mood)});
+  const rows=Object.keys(by).filter(k=>by[k].length>=2).map(k=>({k:+k,m:avg(by[k])})).sort((x,y)=>y.m-x.m);
+  if(rows.length>=5&&rows[0].m-rows[rows.length-1].m>=8){const nmd=["Sundays","Mondays","Tuesdays","Wednesdays","Thursdays","Fridays","Saturdays"];p4+=(p4?" ":"")+nmd[rows[0].k]+" tend to be your best day and "+nmd[rows[rows.length-1].k]+" your lowest.";}}
+ const ms=momentStats(),mk=Object.keys(ms).map(n=>({n:n,s:ms[n]})).filter(x=>x.s.n>=3);
+ const mb=mk.filter(x=>x.s.b>x.s.w).sort((x,y)=>y.s.b/y.s.n-x.s.b/x.s.n)[0],mw=mk.filter(x=>x.s.w>=x.s.b&&x.s.w>0).sort((x,y)=>y.s.w/y.s.n-x.s.w/x.s.n)[0];
+ if(mb||mw)p4+=(p4?" ":"")+"From the moments you logged: "+(mb?esc(mb.n.toLowerCase())+" left you better "+mb.s.b+" of "+mb.s.n+" times":"")+(mb&&mw?", while ":"")+(mw?esc(mw.n.toLowerCase())+" left you worse "+mw.s.w+" of "+mw.s.n:"")+".";
+ if(p4)P.push(p4);
+ // ---- quick facts ----
+ const fs=outcomeSet(),gc={},sc={},fcn={};
+ ent.forEach(([d,e])=>{dayNames(d).forEach(n=>{if(fl.has(n))fcn[n]=(fcn[n]||0)+1});
+  uniq((e.tags||[]).map(canon)).filter(n=>typeOf(n)===G&&!fs.has(n)&&!HABITS.includes(n)).forEach(n=>gc[n]=(gc[n]||0)+1);
+  stressNames(e,d).filter(n=>CYCLE.indexOf(n)<0).forEach(n=>sc[n]=(sc[n]||0)+1)});
+ const topl=(o,k)=>Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,k).map(x=>esc(x[0])+" \u00d7"+x[1]).join(", ");
+ const line=(l,v)=>v?'<div class="sline"><b>'+l+'</b><span>'+v+'</span></div>':"";
+ return top+P.map(x=>'<p class="wr">'+x+'</p>').join("")+line("Felt most",topl(fcn,3))+line("Did most",topl(gc,3))+line("Weighed on you",topl(sc,3));
+}// ---- how each thing I logged moments for left me ----
 function momentStats(){
  const st={};
  Object.values(S.entries).forEach(e=>{const m=e.moments||{};Object.keys(m).forEach(k=>{const n=canon(k),x=m[k];if(!x)return;
@@ -733,18 +790,26 @@ function bestHardHTML(){
  const ms=el.map(x=>x[1].mood).slice().sort((a,b)=>a-b),lo=ms[Math.floor(ms.length/3)],hi=ms[Math.ceil(ms.length*2/3)-1];
  const best=el.filter(([,e])=>e.mood>=hi),hard=el.filter(([,e])=>e.mood<=lo&&e.mood<hi);
  if(best.length<4||hard.length<4)return '<p class="s" style="margin:8px 0 0">Your days are too similar so far to split into best and hardest.</p>';
- const out=outcomeSet(),all={};
- el.forEach(([d])=>dayNames(d).forEach(n=>{if(!out.has(n))all[n]=(all[n]||0)+1}));
+ const out=outcomeSet(),all={},nb=best.length,nh=hard.length;
+ el.forEach(([d])=>dayNames(d).forEach(n=>{if(!out.has(n)&&CYCLE.indexOf(n)<0)all[n]=(all[n]||0)+1}));
  const rows=[];
- Object.keys(all).forEach(n=>{if(all[n]<4)return;
-  const pb=best.filter(([d])=>dayNames(d).includes(n)).length/best.length,ph=hard.filter(([d])=>dayNames(d).includes(n)).length/hard.length;
-  rows.push({n:n,pb:pb,ph:ph,d:pb-ph})});
- const up=rows.filter(r=>r.d>=.15).sort((a,b)=>b.d-a.d).slice(0,5),down=rows.filter(r=>r.d<=-.15).sort((a,b)=>a.d-b.d).slice(0,5);
+ Object.keys(all).forEach(n=>{if(all[n]<5)return;
+  const cb=best.filter(([d])=>dayNames(d).includes(n)).length,ch=hard.filter(([d])=>dayNames(d).includes(n)).length,pb=cb/nb,ph=ch/nh,pp=(cb+ch)/(nb+nh);
+  const se=Math.sqrt(pp*(1-pp)*(1/nb+1/nh))||1;
+  rows.push({n:n,pb:pb,ph:ph,d:pb-ph,z:(pb-ph)/se,ty:typeOf(n)})});
+ // a bad thing never shows up as "more common on best days", and a good thing never as "more common on hard days"
+ const up=rows.filter(r=>r.d>=.15&&r.z>=1.3&&r.ty!==B).sort((a,b)=>b.z-a.z).slice(0,5);
+ const down=rows.filter(r=>r.d<=-.15&&r.z<=-1.3&&r.ty!==G).sort((a,b)=>a.z-b.z).slice(0,5);
  const row=r=>'<div class="bh"><div class="hn">'+esc(r.n)+'</div><div class="bhv"><span class="gg">'+Math.round(r.pb*100)+'%</span> of best \u00b7 <span class="bb2">'+Math.round(r.ph*100)+'%</span> of hard</div><div class="bar2"><i class="gi" style="width:'+Math.round(r.pb*100)+'%"></i></div><div class="bar2"><i class="ri" style="width:'+Math.round(r.ph*100)+'%"></i></div></div>';
- return '<p class="s" style="margin:8px 0 0">Best days are your top third ('+hi+'% and up, '+best.length+' days). Hard days are your bottom third ('+lo+'% and below, '+hard.length+' days).</p>'
-  +'<div class="sech">MORE COMMON ON YOUR BEST DAYS</div>'+(up.length?up.map(row).join(""):'<p class="s" style="margin:0">Nothing stands out yet.</p>')
-  +'<div class="sech">MORE COMMON ON YOUR HARD DAYS</div>'+(down.length?down.map(row).join(""):'<p class="s" style="margin:0">Nothing stands out yet.</p>')
-  +'<p class="s" style="margin:10px 0 0">Feelings are left out because they are the mood itself. These are patterns, not proof of cause.</p>';
+ const lw=r=>esc(r.n.toLowerCase());
+ let take="";
+ if(up.length)take+="Your best days usually came with "+list(up.slice(0,2).map(lw))+". ";
+ if(down.length)take+="Your hard days usually came with "+list(down.slice(0,2).map(lw))+".";
+ return '<p class="s" style="margin:8px 0 0">Best days are your top third ('+hi+'% and up, '+nb+' days). Hard days are your bottom third ('+lo+'% and below, '+nh+' days).</p>'
+  +(take?'<p class="wr" style="margin:10px 0 0">'+take+'</p>':'')
+  +'<div class="sech">MORE COMMON ON YOUR BEST DAYS</div>'+(up.length?up.map(row).join(""):'<p class="s" style="margin:0">Nothing clear yet.</p>')
+  +'<div class="sech">MORE COMMON ON YOUR HARD DAYS</div>'+(down.length?down.map(row).join(""):'<p class="s" style="margin:0">Nothing clear yet.</p>')
+  +'<p class="s" style="margin:10px 0 0">Only differences that look real are shown, and only on the side that makes sense. Feelings are left out because they are the mood, and so is your cycle, which isn\'t something you can change. Patterns, not proof of cause.</p>';
 }
 /* ---------- views ---------- */
 const rateRow=([k,label,hint])=>`<div class="rrow"><div><div class="rl">${label}</div><div class="rh">${hint}</div></div><div class="dots" data-k="${k}">${[1,2,3,4,5].map(n=>`<button class="rd ${(draft[k]||0)>=n?"on":""}" data-n="${n}" aria-label="${label} ${n}"></button>`).join("")}</div></div>`;
@@ -971,11 +1036,11 @@ function bind(){
 }
 function showRecap(keep){
  const last=within(howDays),m=avg(last.map(x=>x[1].mood));
- $("#app").innerHTML=BRAND+`<h1>How am I?</h1><div class="seg top">${[3,7,14,30].map(n=>`<button data-hd="${n}" class="${n===howDays?"on":""}">${n} days</button>`).join("")}</div>
+ $("#app").innerHTML=BRAND+`<h1>How am I?</h1>
  <div class="card rc"><div class="face">${faceFor(today(),m==null?40:m,64)}</div>${recap()}</div>
  <div class="card"><p class="s" style="margin:0">If you feel unsafe or might hurt yourself, please contact local emergency services or a crisis line right now. Region-specific resources will be added here.</p></div>
  <button class="btn soft" onclick="render()">Back</button>`;
- $("#app").querySelectorAll("[data-hd]").forEach(b=>b.onclick=()=>{howDays=+b.dataset.hd;showRecap(true)});
+
  const hm=$("#hmore");if(hm)hm.onclick=()=>{howMore=!howMore;showRecap(true)};
  if(keep!==true)window.scrollTo(0,0);
 }
