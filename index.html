@@ -240,7 +240,10 @@ details.dr p{margin:6px 0 0 114px;font-size:13.5px;color:var(--mute);line-height
 .day.t0::before{background:radial-gradient(circle,rgba(80,100,135,.55),transparent 70%);opacity:.30}
 .day.t1::before{background:radial-gradient(circle,rgba(90,115,150,.5),transparent 70%);opacity:.18}
 .day.t3::before{background:radial-gradient(circle,var(--hc),transparent 68%);opacity:.22}
-.day.t4::before{background:radial-gradient(circle,var(--hc),transparent 66%);opacity:.40}/* nav */
+.day.t4::before{background:radial-gradient(circle,var(--hc),transparent 66%);opacity:.40}.stk.boing{animation:boing .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes boing{0%{transform:rotate(var(--rot)) translateY(0) scale(1)}35%{transform:rotate(var(--rot)) translateY(calc(var(--bo,10px)*-1)) scale(1.2)}68%{transform:rotate(var(--rot)) translateY(0) scale(.93)}100%{transform:rotate(var(--rot)) translateY(0) scale(1)}}
+.stk.boing .fsvg{animation:flash .7s ease-out 1}
+@keyframes flash{0%{filter:drop-shadow(0 0 2px var(--lc))}30%{filter:drop-shadow(0 0 var(--bg2,8px) var(--lc)) drop-shadow(0 0 calc(var(--bg2,8px)*.6) var(--lc))}100%{filter:drop-shadow(0 0 2px var(--lc))}}/* nav */
 nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));background:var(--card);border-radius:30px;display:flex;gap:4px;padding:6px;box-shadow:0 4px 20px #0000001a}
 nav button{width:46px;height:46px;border-radius:50%;border:0;background:none;color:var(--mute);display:grid;place-items:center;cursor:pointer}
 nav button.on{background:var(--g);color:#fff}[data-theme=dark] nav button.on{color:#10201a}
@@ -417,7 +420,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.22 \u00b7 20 Oct 2026";
+const VERSION="0.23 \u00b7 20 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -788,7 +791,7 @@ function summaryFor(from,to,word){
 }// ---- how each thing I logged moments for left me ----
 function momentStats(){
  const st={};
- Object.values(S.entries).forEach(e=>{const m=e.moments||{};Object.keys(m).forEach(k=>{const n=canon(k),x=m[k];if(!x)return;
+ Object.values(S.entries).forEach(e=>{const m=e.moments||{};Object.keys(m).forEach(k=>{const n=canon(k),x=m[k];if(!x)return;const gg=groupOfTag(n);if(!gg||gg.role!=="do"||typeOf(n)!==G)return;
   const s=st[n]||(st[n]={n:0,b:0,s:0,w:0,k:0,f:{}});
   if(x.fx!=null){s.n++;if(x.fx>0)s.b++;else if(x.fx<0)s.w++;else s.s++}
   if((x.f&&x.f.length)||x.fx!=null)s.k++;
@@ -860,9 +863,9 @@ function momentRow(n){
   ${openMoment===n?`<div class="cpick">${feelingChoices(m.f||[]).map(([f,ty])=>`<button class="tg ${ty}" data-mfpick="${esc(n)}" data-f="${esc(f)}"><i></i>${esc(f)}</button>`).join("")}</div>`:""}</div>`;
 }
 function momentsCard(){
- const list=draft.tags.filter(n=>{const g=groupOfTag(n);return g&&(g.role==="do"||g.role==="event")});
+ const list=draft.tags.filter(n=>{const g=groupOfTag(n);return g&&g.role==="do"&&typeOf(n)===G});
  if(!list.length)return "";
- return `<div class="card"><div class="t">How did it go?</div><p class="s" style="margin:2px 0 4px">For what you did or what happened today. Optional, and it's how the app learns what helps you.</p>${list.map(momentRow).join("")}</div>`;
+ return `<div class="card"><div class="t">How did it go?</div><p class="s" style="margin:2px 0 4px">For the good things you did today. Optional, and it's how the app learns what actually helps you.</p>${list.map(momentRow).join("")}</div>`;
 }function tagsCard(){
  if(editTags){
   const hid=new Set(S.set.hidden||[]);
@@ -1180,6 +1183,14 @@ function pickUp(dayEl,ev){
    S.memo[date]={x:Math.max(0,Math.min(r.width-44,x-r.left-21)),y:Math.max(0,Math.min(r.height-44,y-r.top-21)),r:Math.round(Math.random()*30-15),s:1};memoSel=date;save();render()}};
  addEventListener("pointermove",move);addEventListener("pointerup",end);addEventListener("pointercancel",end);tick();
 }
+// tap a sticker: it hops and flashes. Height and glow follow its mood, so a bright day pops and a dull day barely stirs.
+function boing(el){
+ const d=el.dataset.d,e=S.entries[d];if(!e)return;const t=e.mood/100;
+ el.style.setProperty("--bo",(5+Math.round(t*17))+"px");el.style.setProperty("--bg2",(3+Math.round(t*t*24))+"px");
+ el.classList.remove("boing");void el.offsetWidth;el.classList.add("boing");
+ clearTimeout(el.__bt);el.__bt=setTimeout(()=>el.classList.remove("boing"),760);
+ toast(niceDate(d)+" \u00b7 "+e.mood+"%");
+}
 function drawBoard(){
  const b=$("#board"),keys=Object.keys(S.memo).filter(d=>S.entries[d]&&S.entries[d].mood!=null);
  if(keys.length){const h=$("#bh");if(h)h.remove()}
@@ -1193,13 +1204,13 @@ function drawBoard(){
   try{b.setPointerCapture(ev.pointerId)}catch(e){}
   ptrs.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
   if(st){mark(st.dataset.d)}else if(ptrs.size===1){mark(null)}
-  if(ptrs.size===1&&st){const p=S.memo[st.dataset.d];drag={el:st,p:p,ox:ev.clientX-p.x,oy:ev.clientY-p.y,id:ev.pointerId}}
+  if(ptrs.size===1&&st){const p=S.memo[st.dataset.d];drag={el:st,p:p,ox:ev.clientX-p.x,oy:ev.clientY-p.y,id:ev.pointerId,moved:false,sx:ev.clientX,sy:ev.clientY}}
   else if(ptrs.size===2&&memoSel&&S.memo[memoSel]){drag=null;const v=[...ptrs.values()];pinch={d0:Math.hypot(v[0].x-v[1].x,v[0].y-v[1].y)||1,s0:S.memo[memoSel].s||1}}};
  b.onpointermove=ev=>{if(!ptrs.has(ev.pointerId))return;ptrs.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
   if(pinch&&ptrs.size>=2){const v=[...ptrs.values()];setScale(memoSel,pinch.s0*Math.hypot(v[0].x-v[1].x,v[0].y-v[1].y)/pinch.d0);dirty=true}
-  else if(drag&&ev.pointerId===drag.id){const w=b.clientWidth,h=b.clientHeight,z=stkSize(drag.p)+6;
+  else if(drag&&ev.pointerId===drag.id){if(Math.hypot(ev.clientX-drag.sx,ev.clientY-drag.sy)>5)drag.moved=true;const w=b.clientWidth,h=b.clientHeight,z=stkSize(drag.p)+6;
    drag.p.x=Math.max(0,Math.min(w-z,ev.clientX-drag.ox));drag.p.y=Math.max(0,Math.min(h-z,ev.clientY-drag.oy));drag.el.style.left=drag.p.x+"px";drag.el.style.top=drag.p.y+"px";dirty=true}};
- const up=ev=>{ptrs.delete(ev.pointerId);if(ptrs.size<2)pinch=null;if(drag&&ev.pointerId===drag.id)drag=null;if(dirty&&ptrs.size===0){dirty=false;save()}};
+ const up=ev=>{ptrs.delete(ev.pointerId);if(ptrs.size<2)pinch=null;if(drag&&ev.pointerId===drag.id){if(!drag.moved)boing(drag.el);drag=null}if(dirty&&ptrs.size===0){dirty=false;save()}};
  b.onpointerup=up;b.onpointercancel=up;
  b.addEventListener("wheel",ev=>{if(!memoSel||!S.memo[memoSel])return;ev.preventDefault();setScale(memoSel,(S.memo[memoSel].s||1)*(ev.deltaY<0?1.08:.92));dirty=true;clearTimeout(window.__wt);window.__wt=setTimeout(()=>{save();dirty=false},300)},{passive:false});
 
