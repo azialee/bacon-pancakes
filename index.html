@@ -351,7 +351,7 @@ function animalFor(date){
 }
 const glowFor=m=>{const t=m/100;return t>.5?Math.pow(t,3)*8:0};
 function faceFor(date,m,size=40){
- const t=m/100,tr=tierOf(m),r=rnd(hashStr(date)),rough=Math.pow(1-t,1.3)*1.8,c=fcol(date,m),J=a=>(r()-.5)*2*a,A=animalFor(date);
+ const t=m/100,r=rnd(hashStr(date)),rough=Math.pow(1-t,1.3)*1.8,c=fcol(date,m),J=a=>(r()-.5)*2*a,A=animalFor(date);
  const f=n=>n.toFixed(1),out=[];
  const ell=([cx,cy,rx,ry])=>{const N=24,q=[];for(let i=0;i<N;i++){const a=i/N*Math.PI*2;q.push(f(cx+rx*Math.cos(a)+J(rough))+" "+f(cy+ry*Math.sin(a)+J(rough)))}return "M"+q.join("L")+"Z"};
  const lin=(pts,close)=>{const q=[];const P=close?[...pts,pts[0]]:pts;
@@ -360,32 +360,19 @@ function faceFor(date,m,size=40){
   const [lx,ly]=P[P.length-1];q.push(f(lx+J(rough*.8))+" "+f(ly+J(rough*.8)));return "M"+q.join("L")};
  if(A.h)out.push(ell(A.h));
  A.p.forEach(s=>out.push(s.e?ell(s.e):lin(s.l,s.c)));
- const k=(t-.5)*2,[e1,e2,ey]=A.eyes,v=Math.floor(r()*2);
- // eyes and brows tell the mood: tired lines and sad brows when low, plain dots in the middle, happy arcs when good, sparkle eyes when great
+ // eyes stay simple: a short line or a dot; the little happy arc only appears on good days
+ const k=(t-.5)*2,variant=t>=.55?Math.floor(r()*3):Math.floor(r()*2),[e1,e2,ey]=A.eyes;
  const eye=x=>{const y=ey+J(rough*.3);
-  if(tr===0)return `M${f(x-2)} ${f(y+.5)}h4`;
-  if(tr===1)return `M${f(x)} ${f(y-.8)}m-1.1 0a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0`;
-  if(tr===2)return v?`M${f(x-1.5)} ${f(y)}h3`:`M${f(x)} ${f(y-2)}v4`;
-  if(tr===3)return `M${f(x-2)} ${f(y+1.2)}q2 -3.4 4 0`;
-  return `M${f(x)} ${f(y-2.6)}v5.2M${f(x-2.6)} ${f(y)}h5.2M${f(x-1.7)} ${f(y-1.7)}l3.4 3.4M${f(x-1.7)} ${f(y+1.7)}l3.4 -3.4`;
- };
+  if(variant===0)return `M${f(x-1.5)} ${f(y)}h3`;
+  if(variant===1)return `M${f(x)} ${f(y-2)}v4`;
+  return `M${f(x-1.8)} ${f(y+1)}q1.8 -3 3.6 0`};
  out.push(eye(e1),eye(e2));
- if(tr<=1){const lift=tr===0?3.2:1.8;out.push(`M${f(e1-3)} ${f(ey-4)}L${f(e1+2.4)} ${f(ey-4-lift)}`,`M${f(e2+3)} ${f(ey-4)}L${f(e2-2.4)} ${f(ey-4-lift)}`)}
- else if(tr>=3){out.push(`M${f(e1-2.5)} ${f(ey-4.6)}q2.5 -2.2 5 0`,`M${f(e2-2.5)} ${f(ey-4.6)}q2.5 -2.2 5 0`)}
- if(tr===0){[e1,e2].forEach(x=>out.push(`M${f(x)} ${f(ey+3.2)}q-1.8 3 0 4.8q1.8 -1.8 0 -4.8z`));out.push(`M${f(e1-.3)} ${f(ey+9)}v4M${f(e2+.3)} ${f(ey+9)}v4`)} // tears
- if(tr===1)out.push(`M45.5 14q-2 3 0 4.6q2 -1.6 0 -4.6z`); // worried sweat drop
- if(tr===0){out.push(`M4 8.5a3 3 0 0 1 0 -6a4 4 0 0 1 7.5 -1.2a3.2 3.2 0 0 1 3.5 7.2z`,`M6 11.5l-.8 2.6M10 11.5l-.8 2.6M14 11.5l-.8 2.6`)} // storm cloud
- if(tr>=3){out.push(`M${f(e1-4.2)} ${f(ey+5)}q1.6 1.4 3.2 0`,`M${f(e2+1)} ${f(ey+5)}q1.6 1.4 3.2 0`)} // blush
- const spark=(x,y,s)=>`M${x-s} ${y}h${2*s}M${x} ${y-s}v${2*s}`;
- if(tr===4){out.push(spark(5,6,2.4),spark(46,4,2),spark(47,19,1.5));if(m>=92)out.push(`M5 19c-3 -2.4 -4.4 -4.6 -2.4 -6.2c1.5 -.8 2.4.6 2.4 1.6c0 -1 .9 -2.4 2.4 -1.6c2 1.6 .6 3.8 -2.4 6.2z`)}
- else if(tr===3&&m>=70)out.push(spark(46,6,2));
- const [mx,my,hw]=A.mouth;let mouth="";
- for(let i=0;i<=8;i++){const u=i/8,x=mx-hw+2*hw*u,y=my-1.5*k+hw*.5*k*(1-Math.pow(2*u-1,2));mouth+=(i?"L":"M")+f(x+J(rough*.3))+" "+f(y+J(rough*.35))}
+ // the mouth carries the mood: a clear frown at the bottom, a straight line in the middle, a wide smile at the top
+ const [mx,my,hw]=A.mouth,amp=.5+.3*Math.abs(k);let mouth="";
+ for(let i=0;i<=8;i++){const u=i/8,x=mx-hw+2*hw*u,y=my-1.5*k+hw*amp*k*(1-Math.pow(2*u-1,2));mouth+=(i?"L":"M")+f(x+J(rough*.3))+" "+f(y+J(rough*.35))}
  out.push(mouth);
- if(m>=85){const ye=my-1.5*k;out.push(`M${f(mx-hw*.8)} ${f(ye+.4)}Q${f(mx)} ${f(ye+hw*1.35)} ${f(mx+hw*.8)} ${f(ye+.4)}`)} // open, laughing mouth
- if(m<12)out.push(`M${f(mx-hw*.5)} ${f(my+2.6)}q${f(hw*.5)} -1.4 ${f(hw)} 0`); // trembling lip
- const gl=glowFor(m)*Math.min(1,size/36)*(isDark()?1:.45),op=(.55+.45*t).toFixed(2),tilt=tr===0?-7:tr===1?-3:0;
- return `<svg class="fsvg" width="${size}" height="${size}" viewBox="-2 0 54 50" fill="none" stroke="${c}" stroke-width="${isDark()?1.5:1.8}" stroke-linecap="round" stroke-linejoin="round" style="overflow:visible;opacity:${op};filter:drop-shadow(0 0 ${gl.toFixed(1)}px ${c})${tilt?";transform:rotate("+tilt+"deg)":""}">${out.map(d=>`<path d="${d}"/>`).join("")}</svg>`;
+ const gl=glowFor(m)*Math.min(1,size/36)*(isDark()?1:.45),op=(.55+.45*t).toFixed(2);
+ return `<svg class="fsvg" width="${size}" height="${size}" viewBox="-2 0 54 50" fill="none" stroke="${c}" stroke-width="${isDark()?1.5:1.8}" stroke-linecap="round" stroke-linejoin="round" style="overflow:visible;opacity:${op};filter:drop-shadow(0 0 ${gl.toFixed(1)}px ${c})">${out.map(d=>`<path d="${d}"/>`).join("")}</svg>`;
 }function blankFace(size=34){
  const ring=[];for(let i=0;i<26;i++){const a=i/26*Math.PI*2;ring.push(`${(25+20*Math.cos(a)).toFixed(1)} ${(25+20*Math.sin(a)).toFixed(1)}`)}
  return `<svg class="fsvg" width="${size}" height="${size}" viewBox="0 0 50 50" fill="none" stroke="${isDark()?"#2f3b36":"#8fa297"}" stroke-width="1.5"><path d="M${ring.join("L")}Z"/></svg>`;
@@ -424,7 +411,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.19 \u00b7 20 Oct 2026";
+const VERSION="0.20 \u00b7 20 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
