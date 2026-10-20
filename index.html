@@ -431,11 +431,11 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.27 \u00b7 20 Oct 2026";
+const VERSION="0.28 \u00b7 20 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
-S.set.order=S.set.order||{};S.set.hidden=S.set.hidden||[];S.set.manual=S.set.manual||{};
+S.set.order=S.set.order||{};S.set.hidden=S.set.hidden||[];S.set.manual=S.set.manual||{};S.set.alias=S.set.alias||{};Object.keys(S.set.alias).forEach(k=>{ALIAS[k]=S.set.alias[k]});
 let DATAV=0;
 const save=()=>{DATAV++;for(const k of["entries","convos","memo","custom","set"])sset(k,JSON.stringify(S[k]))};
 // One-time tidy: added tags move into the new buckets, repeats are hidden (restorable in edit mode), past days keep every tag.
@@ -524,6 +524,22 @@ function moveTag(gname,name,dir){
  const a=names.indexOf(name),b=names.indexOf(same[j]);[names[a],names[b]]=[names[b],names[a]];
  S.set.order[gname]=names.concat((S.set.hidden||[]).filter(n=>names.indexOf(n)<0));S.set.manual[gname]=true;save();render();
 }function hideTag(name){if(S.set.hidden.indexOf(name)<0)S.set.hidden.push(name);Object.keys(drafts).forEach(d=>{drafts[d].tags=drafts[d].tags.filter(n=>n!==name)});save();render()}
+function renameTag(old,nw){
+ nw=(nw||"").trim().replace(/\s+/g," ").slice(0,24);if(!nw||nw===old)return;
+ const taken=new Set();GROUPS.forEach(g=>groupTags(g).forEach(t=>taken.add(t[0])));DERIVED.forEach(t=>taken.add(t[0]));CYCLE.forEach(t=>taken.add(t));
+ if(taken.has(nw)){toast("That name is already a tag");return}
+ const g=GROUPS.find(x=>groupTags(x).some(t=>t[0]===old));if(!g)return;
+ const own=S.custom.find(c=>c.name===old);
+ if(own)own.name=nw;
+ else{const ty=(groupTags(g).find(t=>t[0]===old)||[])[1]||N;if(S.set.hidden.indexOf(old)<0)S.set.hidden.push(old);S.custom.push({g:g.name,name:nw,type:ty})}
+ S.set.alias[old]=nw;ALIAS[old]=nw;Object.keys(S.set.alias).forEach(k=>{if(S.set.alias[k]===old){S.set.alias[k]=nw;ALIAS[k]=nw}});
+ const sw=a=>Array.isArray(a)?uniq(a.map(x=>x===old?nw:x)):a;
+ Object.values(S.entries).forEach(e=>{if(e.tags)e.tags=sw(e.tags);if(e.moments){const m=e.moments;if(m[old]){m[nw]=m[old];delete m[old]}Object.values(m).forEach(v=>{if(v&&v.f)v.f=sw(v.f)})}});
+ S.convos.forEach(c=>{if(c.tags)c.tags=sw(c.tags)});
+ Object.keys(drafts).forEach(d=>{const x=drafts[d];x.tags=sw(x.tags);if(x.moments){if(x.moments[old]){x.moments[nw]=x.moments[old];delete x.moments[old]}Object.values(x.moments).forEach(v=>{if(v&&v.f)v.f=sw(v.f)})}});
+ Object.keys(S.set.order).forEach(k=>{S.set.order[k]=sw(S.set.order[k])});
+ save();render();toast("Renamed to "+nw);
+}
 function restoreTag(name){S.set.hidden=S.set.hidden.filter(n=>n!==name);save();render()}
 
 /* ---------- state ---------- */
@@ -656,7 +672,7 @@ function recap(){
  }
  if(!L)return head+"<p>Log a few days and I'll start spotting what's behind the dips.</p>";
  // feelings: the ones that showed up most, with a marker when it's well above your usual
- const fl=feelingNames().concat(["Tired"]).map(n=>({n:n,c:has(n),exp:rate(n,base)*n0,ty:typeOf(n)})).filter(x=>x.c>0).sort((x,y)=>y.c-x.c).slice(0,5);
+ let fl=feelingNames().concat(["Tired"]).map(n=>({n:n,c:has(n),exp:rate(n,base)*n0,ty:typeOf(n)})).filter(x=>x.c>0).sort((x,y)=>y.c-x.c);fl=(fl.filter(x=>x.c>=2).length?fl.filter(x=>x.c>=2):fl).slice(0,3);
  let html=head;
  if(fl.length)html+=`<div class="sech">FEELINGS LATELY</div><div class="chips" style="margin:0">${fl.map(x=>`<span class="pill ${x.ty===G?"pos":"neg"}">${esc(x.n)} \u00b7 ${x.c} day${x.c>1?"s":""}${x.c>=x.exp+2?" \u25b2":""}</span>`).join("")}</div>`;
  // what's shaping it: short line up front, the reason one tap away
@@ -892,8 +908,8 @@ function momentsCard(){
  if(editTags){
   const hid=new Set(S.set.hidden||[]);
   return `<div class="card"><div class="row"><div class="t">Edit tags</div><button class="link" id="tdone">done</button></div><p class="s" style="margin:2px 0 4px">Tags are sorted by how often you use them. Use the arrows to set your own order, or remove what you don't use. Past days keep their tags.</p>
-  ${GROUPS.map(g=>{const L=tagList(g),removed=groupTags(g).filter(t=>hid.has(t[0]));
-   return `<div class="gt">${g.name}${S.set.manual[g.name]?` <button class="link sm" data-auto="${g.name}" style="text-transform:none;letter-spacing:0">sort by most used</button>`:""}</div>`+byColor(L).reduce((a,x)=>a.concat(x),[]).map(([n,ty])=>`<div class="er ${ty}"><i class="dot"></i><span>${esc(n)}</span><span class="eb"><button data-mv="-1" data-g="${g.name}" data-n="${esc(n)}" aria-label="move up">▲</button><button data-mv="1" data-g="${g.name}" data-n="${esc(n)}" aria-label="move down">▼</button><button data-hide="1" data-n="${esc(n)}" aria-label="remove">✕</button></span></div>`).join("")
+  ${GROUPS.map(g=>{const L=tagList(g),removed=groupTags(g).filter(t=>hid.has(t[0])&&!S.set.alias[t[0]]);
+   return `<div class="gt">${g.name}${S.set.manual[g.name]?` <button class="link sm" data-auto="${g.name}" style="text-transform:none;letter-spacing:0">sort by most used</button>`:""}</div>`+byColor(L).reduce((a,x)=>a.concat(x),[]).map(([n,ty])=>`<div class="er ${ty}"><i class="dot"></i><span>${esc(n)}</span><span class="eb"><button data-mv="-1" data-g="${g.name}" data-n="${esc(n)}" aria-label="move up">▲</button><button data-mv="1" data-g="${g.name}" data-n="${esc(n)}" aria-label="move down">▼</button><button data-ren="1" data-n="${esc(n)}" aria-label="rename">Aa</button><button data-hide="1" data-n="${esc(n)}" aria-label="remove">✕</button></span></div>`).join("")
     +(removed.length?`<div class="tags" style="margin-top:6px"><span class="s">removed:</span>${removed.map(([n])=>`<button class="tg more" data-restore="${esc(n)}"><i></i>${esc(n)}</button>`).join("")}</div>`:"")}).join("")}</div>`;
  }
  const use=tagUse();
@@ -1013,6 +1029,7 @@ function bind(){
   const td=$("#tdone");if(td)td.onclick=()=>{editTags=false;render()};
   A.querySelectorAll("[data-mv]").forEach(b=>b.onclick=()=>moveTag(b.dataset.g,b.dataset.n,+b.dataset.mv));
   A.querySelectorAll("[data-hide]").forEach(b=>b.onclick=()=>hideTag(b.dataset.n));
+  A.querySelectorAll("[data-ren]").forEach(b=>b.onclick=()=>{const o=b.dataset.n,v=window.prompt("Rename this tag",o);if(v!==null)renameTag(o,v)});
   A.querySelectorAll("[data-restore]").forEach(b=>b.onclick=()=>restoreTag(b.dataset.restore));
   A.querySelectorAll("[data-auto]").forEach(b=>b.onclick=()=>{const g=b.dataset.auto;S.set.manual[g]=false;delete S.set.order[g];save();render()});
   A.querySelectorAll(".sd").forEach(b=>b.onclick=()=>{sel=b.dataset.d;render()});
