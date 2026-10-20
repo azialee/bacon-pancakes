@@ -76,14 +76,14 @@ textarea{min-height:76px;resize:vertical}
 .tg.more{background:none;color:var(--mute);padding-left:4px;padding-right:4px}
 /* basics tiles */
 .basics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.tl2{border-radius:20px;padding:14px 14px 13px;min-width:0;background:var(--tile)}
-.tl2 svg.ti{width:34px;height:34px;display:block;margin-bottom:8px;fill:none;stroke:var(--g);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.tl2 .rl{font-size:16px;line-height:1.1}.tl2 .rc{font-size:12.5px;color:var(--mute);margin:3px 0 8px;min-height:17px}
-.tl2 .dots{gap:5px}
+.tl2{border-radius:20px;padding:14px 10px 12px;min-width:0;background:var(--tile);text-align:center;display:flex;flex-direction:column;align-items:center}
+.tl2 svg.ti{width:28px;height:28px;display:block;margin-bottom:4px;fill:none;stroke:var(--g);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tl2 .rl{font-size:15px;line-height:1.1;margin-bottom:9px}.tl2 .rc{font-size:12.5px;color:var(--mute);margin:9px 0 0;min-height:17px}
+.tl2 .dots{gap:6px;justify-content:center}
 .tl2 .rd,.tl2 .rd.on{width:15px;height:15px;transform:none;border:1.6px solid var(--g);background:none}
 .tl2 .rd.on{background:var(--g)}
 .ck{display:inline-flex;align-items:center;gap:8px;background:none;border:0;padding:0;cursor:pointer;font-weight:600;font-size:13px;color:var(--ink)}
-.ck b{width:22px;height:22px;border-radius:7px;border:1.8px solid var(--g);display:grid;place-items:center;transition:background .15s}
+.ck b{width:26px;height:26px;border-radius:8px;border:1.8px solid var(--g);display:grid;place-items:center;transition:background .15s}
 .ck.on b{background:var(--g)}.ck.on b::before{content:"\2713";color:var(--card);font-size:13px;line-height:1}
 .add{display:flex;gap:10px;align-items:center;margin-top:8px;width:100%}
 .add input{flex:1;padding:6px 2px;border-radius:0;border-bottom:1px solid var(--line);background:none}
@@ -327,16 +327,15 @@ const rnd=seed=>{let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s
 const isDark=()=>document.documentElement.dataset.theme==="dark";
 // five mood tiers: 0 awful, 1 low, 2 middling, 3 good, 4 great
 const tierOf=m=>m<20?0:m<40?1:m<60?2:m<80?3:4;
-// each tier has its own family of colours: cool and dim when low, warm and bright when good, vivid and varied when great
-const TIERHUES=[[205,215,225,235,250],[185,195,215,255,270],[40,75,110,150,170],[8,20,34,48,340,355],[300,320,330,45,95,170,190]];
-const TIERSAT=[[14,24],[22,34],[32,46],[66,80],[88,96]];
+// one colour per day; the mood only changes how dull or bright it is
+const FHUES=[8,24,150,172,198,222,262,300,330,350];
 function fcol(date,m){
- const tr=tierOf(m),hs=TIERHUES[tr],h=hs[hashStr(date+"c")%hs.length],f=(m-tr*20)/20,sp=TIERSAT[tr],sat=sp[0]+(sp[1]-sp[0])*f;
- if(isDark()){const L=[[36,40],[40,46],[46,52],[56,62],[62,70]][tr];return `hsl(${h},${sat.toFixed(0)}%,${(L[0]+(L[1]-L[0])*f).toFixed(1)}%)`}
- const L=[[60,57],[56,52],[50,46],[47,43],[44,40]][tr],yel=(h>=28&&h<=110&&tr>=2)?8:0;
- return `hsl(${h},${sat.toFixed(0)}%,${(L[0]+(L[1]-L[0])*f-yel).toFixed(1)}%)`;
-}
-// fine-line animals. head = ellipse [cx,cy,rx,ry]; p = extra shapes (e: ellipse, l: polyline); eyes/mouth placed per animal
+ // one hue per day (and animal); only the dullness or brightness of that hue follows the mood, smoothly
+ const t=m/100,h=FHUES[hashStr(date+"c")%FHUES.length],sat=12+76*Math.pow(t,1.1);
+ if(isDark())return `hsl(${h},${sat.toFixed(0)}%,${(38+30*t).toFixed(1)}%)`;
+ const yel=(h>=28&&h<=110)?8*t:0;
+ return `hsl(${h},${sat.toFixed(0)}%,${(60-18*t-yel).toFixed(1)}%)`;
+}// fine-line animals. head = ellipse [cx,cy,rx,ry]; p = extra shapes (e: ellipse, l: polyline); eyes/mouth placed per animal
 const ANIMALS=[
  {n:"cat",h:[25,30,15,12],p:[{l:[[11,24],[12,9],[22,17]]},{l:[[39,24],[38,9],[28,17]]},{l:[[10,31],[3,29]]},{l:[[10,34],[3,35]]},{l:[[40,31],[47,29]]},{l:[[40,34],[47,35]]},{l:[[23.5,31],[26.5,31],[25,32.8]],c:1}],eyes:[19.5,30.5,27],mouth:[25,35.5,6]},
  {n:"bunny",h:[25,32,13,11],p:[{e:[19,13,4,9.5]},{e:[31,13,4,9.5]},{l:[[24,32],[26,32],[25,33.4]],c:1}],eyes:[20,30,30],mouth:[25,36.5,5.5]},
@@ -859,9 +858,9 @@ const TICON={
  food:'<ellipse cx="24" cy="29" rx="16" ry="7"/><ellipse cx="24" cy="29" rx="9" ry="3.6"/><path d="M12 6v9M15 6v9M18 6v9M15 15v9M34 6c-3 3-3 9 0 12v6"/>',
  period:'<path d="M24 7c8 10 12 16 12 23a12 12 0 0 1-24 0c0-7 4-13 12-23z"/><path d="M18 31a6 6 0 0 0 5 5"/>'};
 const ticon=k=>`<svg class="ti" viewBox="0 0 48 48">${TICON[k]}</svg>`;
-const rateRow=([k,label])=>`<div class="tl2">${ticon(k)}<div class="rl">${label}</div><div class="rc" id="rc-${k}">${rcap(k,draft[k])}</div><div class="dots" data-k="${k}">${[1,2,3,4,5].map(n=>`<button class="rd ${(draft[k]||0)>=n?"on":""}" data-n="${n}" aria-label="${label} ${n}"></button>`).join("")}</div></div>`;
+const rateRow=([k,label])=>`<div class="tl2">${ticon(k)}<div class="rl">${label}</div><div class="dots" data-k="${k}">${[1,2,3,4,5].map(n=>`<button class="rd ${(draft[k]||0)>=n?"on":""}" data-n="${n}" aria-label="${label} ${n}"></button>`).join("")}</div><div class="rc" id="rc-${k}">${rcap(k,draft[k])}</div></div>`;
 function periodCap(){const ci=cycleInfo();if(draft.period)return "Today";if(!ci||ci.stale)return "Not today";return "Due ~"+niceDate(ci.next).replace(/,.*$/,"")}
-const periodTile=()=>`<div class="tl2">${ticon("period")}<div class="rl">Period</div><div class="rc" id="rc-period">${periodCap()}</div><button class="ck ${draft.period?"on":""}" id="per" role="switch" aria-checked="${draft.period}" aria-label="Period"><b></b>Period today</button></div>`;
+const periodTile=()=>`<div class="tl2">${ticon("period")}<div class="rl">Period</div><button class="ck ${draft.period?"on":""}" id="per" role="switch" aria-checked="${draft.period}" aria-label="Period today"><b></b></button><div class="rc" id="rc-period">${periodCap()}</div></div>`;
 function addForm(){return `<div class="add"><input type="text" id="newtag" placeholder="your own word" maxlength="24"><span class="sw pos ${addType===G?"sel":""}" data-ty="pos"></span><span class="sw neg ${addType===B?"sel":""}" data-ty="neg"></span><span class="sw neu ${addType===N?"sel":""}" data-ty="neu"></span><button class="link" id="addok">add</button></div>`}
 // ---- moments: for each thing I did or that happened today, how it went and which feelings came with it ----
 function groupOfTag(n){return GROUPS.find(g=>groupTags(g).some(t=>t[0]===n))}
