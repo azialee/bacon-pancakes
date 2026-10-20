@@ -433,7 +433,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.29 \u00b7 20 Oct 2026";
+const VERSION="0.30 \u00b7 20 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -631,7 +631,9 @@ function topThemes(days=14){
  return Object.entries(th).filter(([k])=>!/^good moments$/i.test(k)).sort((a,b)=>b[1].length-a[1].length);
 }
 const GOODWORD={"Hobby":"Hobbies","Outdoors":"Time outdoors","Nap":"Naps","Watching shows":"Your shows","Felt supported":"Feeling supported","Date":"Dates"};
-const SUGGEST={"Exercise":"Some exercise","Outdoors":"Time outdoors","Reading":"A bit of reading","Hobby":"Your hobby time","Cooking":"Cooking something","Shopping":"A little shopping trip","Nap":"A short nap","Watching shows":"A show you like","Felt supported":"Reaching out to someone supportive","Date":"A date","Alone time":"Some quiet alone time"};
+const SUGGEST={"Exercise":"Fit in some exercise, even 15 minutes","Walk":"Take a 15 minute walk","Outdoors":"Get some time outdoors","Reading":"Read for a bit","Hobby":"Make time for your hobby","Cooking":"Cook something you enjoy","Shopping":"Go on a little shopping trip","Nap":"Take a short nap","Watching shows":"Put on a show you like","Date":"Plan a date or some time with someone","Alone time":"Set aside some quiet alone time","Ate out":"Treat yourself to a meal out"};
+// only things you can actually do, that are good for you and that have a proper wording become a quick win; events, feelings, habits and unknown custom tags never do
+function quickWin(n){const g=groupOfTag(n);if(!g||g.role!=="do"||typeOf(n)!==G||HABITS.includes(n))return null;return SUGGEST[n]||null}
 // positive things (not feelings or habits) whose days average clearly higher mood for this person
 function bestLifts(){
  const el=entryList(),f=outcomeSet();
@@ -729,9 +731,9 @@ function recap(){
  if(has("Partner conflict")||has("Family conflict"))W.push(["Write down what you want to say before the next conversation","Naming it first lowers the heat when you do talk.",1]);
  if(L>=4&&!has("Exercise")&&!has("Walk")&&!has("Outdoors"))W.push(["A 10 minute walk outside","Movement and daylight help burn off stress hormones.",1]);
  if(ci&&!ci.stale&&ci.until>=0&&ci.until<=7&&!has("Period"))W.push(["Keep the next few days lighter",`Protect sleep, eat regularly and skip extras until your period starts around ${niceDate(ci.next)}.`,1]);
- const freshM=Object.keys(ms).map(n=>({n:n,s:ms[n]})).filter(x=>x.s.n>=3&&x.s.b/x.s.n>=.6&&x.s.b>x.s.w&&has(x.n)===0).sort((x,y)=>y.s.b/y.s.n-x.s.b/x.s.n)[0];
- if(freshM)W.push([`${SUGGEST[freshM.n]||freshM.n} for 15 minutes`,`It left you better ${freshM.s.b} of ${freshM.s.n} times, and you haven't done it lately.`,50]);
- else{const fresh=lifts.find(x=>has(x.n)===0);if(fresh)W.push([`${SUGGEST[fresh.n]||fresh.n} for 15 minutes`,`Your days with it average ${fresh.a}% against ${fresh.o}% without, and you haven't done it lately.`,fresh.d]);}
+ const freshM=Object.keys(ms).map(n=>({n:n,s:ms[n]})).filter(x=>quickWin(x.n)&&x.s.n>=3&&x.s.b/x.s.n>=.6&&x.s.b>x.s.w&&has(x.n)===0).sort((x,y)=>y.s.b/y.s.n-x.s.b/x.s.n)[0];
+ if(freshM)W.push([quickWin(freshM.n),`It left you better ${freshM.s.b} of ${freshM.s.n} times, and you haven't done it lately.`,50]);
+ else{const fresh=lifts.find(x=>quickWin(x.n)&&has(x.n)===0);if(fresh)W.push([quickWin(fresh.n),`Your days with it average ${fresh.a}% against ${fresh.o}% without, and you haven't done it lately.`,fresh.d]);}
  W.sort((x,y)=>y[2]-x[2]);
  html+=`<div class="sech">QUICK WINS</div>`+(W.length?`<ol class="qw">${W.slice(0,3).map(w=>`<li><b>${esc(w[0])}</b><span>${w[1]}</span></li>`).join("")}</ol>`:`<p class="s">Nothing urgent stands out. Keep doing the things that help.</p>`);
  return html;
