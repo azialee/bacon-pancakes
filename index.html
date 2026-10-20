@@ -252,7 +252,9 @@ details.dr p{margin:6px 0 0 114px;font-size:13.5px;color:var(--mute);line-height
 .day.t0::before{background:radial-gradient(circle,rgba(80,100,135,.55),transparent 70%);opacity:.30}
 .day.t1::before{background:radial-gradient(circle,rgba(90,115,150,.5),transparent 70%);opacity:.18}
 .day.t3::before{background:radial-gradient(circle,var(--hc),transparent 68%);opacity:.22}
-.day.t4::before{background:radial-gradient(circle,var(--hc),transparent 66%);opacity:.40}.stk.boing{animation:boing .6s cubic-bezier(.3,1.6,.5,1)}
+.day.t4::before{background:radial-gradient(circle,var(--hc),transparent 66%);opacity:.40}.bsz{position:absolute;right:10px;bottom:10px;display:none;gap:8px;z-index:3}.bsz.on{display:flex}
+.bsz button{width:44px;height:44px;border-radius:50%;border:0;background:var(--card);color:var(--g);font-size:24px;line-height:1;font-weight:600;cursor:pointer;box-shadow:0 6px 16px -8px rgba(40,60,50,.5)}
+.stk.boing{animation:boing .6s cubic-bezier(.3,1.6,.5,1)}
 @keyframes boing{0%{transform:rotate(var(--rot)) translateY(0) scale(1)}35%{transform:rotate(var(--rot)) translateY(calc(var(--bo,10px)*-1)) scale(1.2)}68%{transform:rotate(var(--rot)) translateY(0) scale(.93)}100%{transform:rotate(var(--rot)) translateY(0) scale(1)}}
 .stk.boing .fsvg{animation:flash .7s ease-out 1}
 @keyframes flash{0%{filter:drop-shadow(0 0 2px var(--lc))}30%{filter:drop-shadow(0 0 var(--bg2,8px) var(--lc)) drop-shadow(0 0 calc(var(--bg2,8px)*.6) var(--lc))}100%{filter:drop-shadow(0 0 2px var(--lc))}}/* nav */
@@ -431,7 +433,7 @@ const MEM={},canSave=!!LS;
 const sget=k=>{try{return LS?LS.getItem(k):(k in MEM?MEM[k]:null)}catch(e){return null}};
 const sset=(k,v)=>{if(LS){try{LS.setItem(k,v);return}catch(e){}}MEM[k]=v};
 const BRAND='<div class="brand">den-ease mood <span>:)</span></div>';
-const VERSION="0.28 \u00b7 20 Oct 2026";
+const VERSION="0.29 \u00b7 20 Oct 2026";
 const NOSAVE='<div class="nosave"><b>Saving is blocked in this view.</b> This preview page cannot store data, so what you enter is lost when you close it. Open the app from a normal web address (or install it) to keep your data.</div>';
 const load=(k,d)=>{try{const v=sget(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
 const S={entries:load("entries",{}),convos:load("convos",[]),memo:load("memo",{}),custom:load("custom",[]),set:load("set",{theme:"auto",remind:"",period:true,aikey:""})};
@@ -947,7 +949,7 @@ calendar(){
  return `<h1>Calendar</h1><div class="card"><div class="row"><button class="link" id="prev">‹</button><span class="t">${first.toLocaleString("default",{month:"long",year:"numeric"})}</span><button class="link" id="next">›</button></div><br><div class="cal">${cells}</div>
  <p class="s" style="margin:12px 0 0">${mm.length?`Average ${avg(mm)}% · ${mm.length} days logged`:"No entries this month"}${Object.keys(S.entries).some(d=>d.startsWith(calMonth)&&S.entries[d].period)?' · <span style="color:var(--b)">●</span> period':""}</p></div>
  <div class="card"><div class="row" style="flex-wrap:wrap"><h2 style="margin:0">Memo board</h2><button class="bb" id="bclear" aria-label="clear the board">${svg("trash")}</button></div>
- <div class="board" id="board"><div class="boardhint" id="bh">press and hold a face on the calendar, then drag it here.<br>pinch with two fingers to resize</div></div></div>`;
+ <div class="board" id="board"><div class="boardhint" id="bh">press and hold a face on the calendar, then drag it here.<br>tap a face, then pinch anywhere or use the + and - buttons to resize</div></div></div>`;
 },
 trends(){
  const W={WTD:"week",MTD:"month",YTD:"year"}[range],ri=rangeInfo();
@@ -1204,7 +1206,7 @@ function aiHTML(a){
 }
 /* ---------- memo board ---------- */
 const stkSize=p=>Math.round(38*(p.s||1));
-function setScale(d,s){const p=S.memo[d];if(!p||!S.entries[d])return;p.s=Math.max(.5,Math.min(3.2,s));
+function setScale(d,s){const p=S.memo[d];if(!p||!S.entries[d])return;p.s=Math.max(.5,Math.min(4,s));
  const el=document.querySelector('.stk[data-d="'+d+'"]');if(el)el.innerHTML=faceFor(d,S.entries[d].mood,stkSize(p))}
 // Pick a face up from the calendar (press and hold) and drop it on the board. One sticker per day.
 function pickUp(dayEl,ev){
@@ -1238,18 +1240,23 @@ function drawBoard(){
   s.innerHTML=faceFor(d,S.entries[d].mood,stkSize(p));s.title=d;const tt=S.entries[d].mood/100;s.style.cssText=`left:${p.x}px;top:${p.y}px;--rot:${p.r}deg;--lc:${fcol(d,S.entries[d].mood)};--li:${(tt*tt).toFixed(2)};--dur:${(3.4-2.2*tt).toFixed(1)}s;--dl:-${(hashStr(d)%30)/10}s`;
   b.appendChild(s)});
  const ptrs=new Map();let drag=null,pinch=null,dirty=false;
- const mark=d=>{memoSel=d;b.querySelectorAll(".stk").forEach(x=>x.classList.toggle("sel",x.dataset.d===d))};
+ let pendDesel=false;
+ const bz=document.createElement("div");bz.className="bsz";bz.innerHTML='<button data-z="-1" aria-label="smaller">\u2212</button><button data-z="1" aria-label="bigger">+</button>';b.appendChild(bz);
+ bz.onpointerdown=ev=>ev.stopPropagation();bz.onpointerup=ev=>ev.stopPropagation();
+ bz.onclick=ev=>{const z=ev.target.closest("button");if(!z||!memoSel||!S.memo[memoSel])return;const k=+z.dataset.z;setScale(memoSel,(S.memo[memoSel].s||1)*(k>0?1.25:.8));clearTimeout(window.__wt);window.__wt=setTimeout(save,300)};
+ const mark=d=>{memoSel=d;bz.classList.toggle("on",!!d);b.querySelectorAll(".stk").forEach(x=>x.classList.toggle("sel",x.dataset.d===d))};
+ bz.classList.toggle("on",!!memoSel);
  b.onpointerdown=ev=>{const st=ev.target.closest(".stk");
   try{b.setPointerCapture(ev.pointerId)}catch(e){}
   ptrs.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
-  if(st){mark(st.dataset.d)}else if(ptrs.size===1){mark(null)}
+  if(st){mark(st.dataset.d)}else if(ptrs.size===1){pendDesel=true}else pendDesel=false;
   if(ptrs.size===1&&st){const p=S.memo[st.dataset.d];drag={el:st,p:p,ox:ev.clientX-p.x,oy:ev.clientY-p.y,id:ev.pointerId,moved:false,sx:ev.clientX,sy:ev.clientY}}
   else if(ptrs.size===2&&memoSel&&S.memo[memoSel]){drag=null;const v=[...ptrs.values()];pinch={d0:Math.hypot(v[0].x-v[1].x,v[0].y-v[1].y)||1,s0:S.memo[memoSel].s||1}}};
  b.onpointermove=ev=>{if(!ptrs.has(ev.pointerId))return;ptrs.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
   if(pinch&&ptrs.size>=2){const v=[...ptrs.values()];setScale(memoSel,pinch.s0*Math.hypot(v[0].x-v[1].x,v[0].y-v[1].y)/pinch.d0);dirty=true}
   else if(drag&&ev.pointerId===drag.id){if(Math.hypot(ev.clientX-drag.sx,ev.clientY-drag.sy)>5)drag.moved=true;const w=b.clientWidth,h=b.clientHeight,z=stkSize(drag.p)+6;
    drag.p.x=Math.max(0,Math.min(w-z,ev.clientX-drag.ox));drag.p.y=Math.max(0,Math.min(h-z,ev.clientY-drag.oy));drag.el.style.left=drag.p.x+"px";drag.el.style.top=drag.p.y+"px";dirty=true}};
- const up=ev=>{ptrs.delete(ev.pointerId);if(ptrs.size<2)pinch=null;if(drag&&ev.pointerId===drag.id){if(!drag.moved)boing(drag.el);drag=null}if(dirty&&ptrs.size===0){dirty=false;save()}};
+ const up=ev=>{ptrs.delete(ev.pointerId);if(pendDesel&&ptrs.size===0){pendDesel=false;mark(null)}if(ptrs.size<2)pinch=null;if(drag&&ev.pointerId===drag.id){if(!drag.moved)boing(drag.el);drag=null}if(dirty&&ptrs.size===0){dirty=false;save()}};
  b.onpointerup=up;b.onpointercancel=up;
  b.addEventListener("wheel",ev=>{if(!memoSel||!S.memo[memoSel])return;ev.preventDefault();setScale(memoSel,(S.memo[memoSel].s||1)*(ev.deltaY<0?1.08:.92));dirty=true;clearTimeout(window.__wt);window.__wt=setTimeout(()=>{save();dirty=false},300)},{passive:false});
 
