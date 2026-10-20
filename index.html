@@ -910,7 +910,7 @@ today(){
  const m=draft.mood,fc=fcol(sel,m);
  return `${dateStrip()}${sel===today()?"":`<div class="s" style="text-align:center;margin:-2px 0 8px">logging for ${niceDate(sel)}</div>`}
  <button class="sosbtn" id="sos">how am I?</button>
- <div class="card"><div class="hi">how are you today?</div><div class="moodhead"><div class="pct" id="pct" style="color:${fc};text-shadow:${numGlow(m,sel)}">${m}</div><div id="face">${faceFor(sel,m,56)}</div></div>
+ <div class="card"><div class="hi">what's today like? :)</div><div class="moodhead"><div class="pct" id="pct" style="color:${fc};text-shadow:${numGlow(m,sel)}">${m}</div><div id="face">${faceFor(sel,m,56)}</div></div>
   <div class="lwrap" id="lwrap">${lineSVG(sel,m)}</div><div class="hint">slide along the line</div></div>
  <div class="basics">${RATINGS.map(rateRow).join("")}${S.set.period!==false?periodTile():""}</div>
  ${tagsCard()}
